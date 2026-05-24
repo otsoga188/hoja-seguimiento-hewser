@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hoja de Seguimiento Semanal — Hewser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0d0e12; --bg-2:#15171d; --surface:#1c1f27; --surface-2:#252934;
+  --border:#2e3340; --border-soft:#1f232c;
+  --text:#eef0f5; --text-dim:#9aa1b3; --text-faint:#5b6273;
+  --accent:#d4ff3a; --accent-2:#7aff9d;
+  --warn:#ffb347; --danger:#ff5e6c; --success:#7aff9d; --info:#6ec1ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+body{
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(212,255,58,0.08), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(122,255,157,0.04), transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+.display{font-family:'Fraunces',serif;font-weight:900;letter-spacing:-0.03em;line-height:0.95}
+.mono{font-family:'JetBrains Mono',monospace;font-feature-settings:"ss01","ss02";letter-spacing:-0.01em}
+h1,h2,h3,h4{font-family:'Fraunces',serif;font-weight:700;letter-spacing:-0.02em}
+
+.app{max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+header.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 24px;margin-bottom:32px;
+  background:rgba(28,31,39,0.6);backdrop-filter:blur(20px);
+  border:1px solid var(--border-soft);border-radius:18px;
+  position:sticky;top:16px;z-index:100;flex-wrap:wrap;gap:12px;
+}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-mark{
+  width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  color:#0d0e12;font-family:'Fraunces',serif;font-weight:900;font-size:22px;
+}
+.brand-text{display:flex;flex-direction:column}
+.brand-text .title{font-family:'Fraunces',serif;font-weight:700;font-size:17px;letter-spacing:-0.01em}
+.brand-text .sub{font-size:11px;color:var(--text-faint);letter-spacing:0.12em;text-transform:uppercase;font-weight:600}
+
+.topbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.conn-status{
+  font-size:11px;color:var(--text-dim);
+  display:flex;align-items:center;gap:6px;
+  padding:6px 10px;background:var(--bg-2);border-radius:8px;
+  border:1px solid var(--border-soft);
+  font-family:'JetBrains Mono',monospace;letter-spacing:0.04em;
+}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--text-faint)}
+.conn-dot.ok{background:var(--success);box-shadow:0 0 8px var(--success)}
+.conn-dot.err{background:var(--danger)}
+.conn-dot.loading{background:var(--warn);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+.role-switch{display:flex;gap:4px;background:var(--bg-2);padding:4px;border-radius:12px;border:1px solid var(--border-soft)}
+.role-switch button{
+  background:transparent;border:none;color:var(--text-dim);
+  padding:8px 16px;border-radius:9px;cursor:pointer;
+  font-family:'Manrope',sans-serif;font-weight:600;font-size:13px;
+  transition:all .2s;
+}
+.role-switch button.active{background:var(--accent);color:#0d0e12}
+.role-switch button:not(.active):hover{color:var(--text)}
+
+.hero{margin-bottom:40px}
+.hero-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);
+  letter-spacing:0.15em;text-transform:uppercase;margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.hero-eyebrow::before{content:"";width:24px;height:1px;background:var(--accent)}
+.hero h1{font-size:clamp(36px,5vw,64px);margin-bottom:16px}
+.hero h1 em{font-style:italic;color:var(--accent);font-weight:400}
+.hero-meta{color:var(--text-dim);font-size:15px;max-width:640px;line-height:1.6}
+
+.tabs{display:flex;gap:6px;margin-bottom:28px;border-bottom:1px solid var(--border-soft);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  background:transparent;border:none;color:var(--text-dim);
+  padding:14px 20px;cursor:pointer;font-weight:600;font-size:14px;
+  border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;
+  font-family:'Manrope',sans-serif;display:flex;align-items:center;gap:8px;
+  transition:all .2s;
+}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab .badge{
+  background:var(--surface-2);color:var(--text);font-size:11px;
+  padding:2px 8px;border-radius:99px;font-family:'JetBrains Mono',monospace;
+}
+.tab.active .badge{background:var(--accent);color:#0d0e12}
+
+.card{
+  background:var(--surface);border:1px solid var(--border-soft);
+  border-radius:18px;padding:28px;margin-bottom:20px;
+}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:16px;flex-wrap:wrap}
+.card-title{display:flex;align-items:center;gap:14px}
+.card-title-num{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--accent);background:rgba(212,255,58,0.1);
+  padding:4px 10px;border-radius:6px;font-weight:600;
+}
+.card-title h2{font-size:22px;font-weight:600}
+.card-subtitle{color:var(--text-dim);font-size:14px;margin-top:6px}
+
+.field{margin-bottom:20px}
+.field label{
+  display:block;font-size:12px;color:var(--text-dim);
+  margin-bottom:8px;letter-spacing:0.06em;text-transform:uppercase;font-weight:600;
+}
+.field input[type=text],.field input[type=number],.field input[type=time],.field input[type=date],
+.field input[type=email],.field input[type=url],
+.field textarea,.field select{
+  width:100%;background:var(--bg-2);border:1px solid var(--border);
+  color:var(--text);padding:12px 14px;border-radius:10px;
+  font-family:'Manrope',sans-serif;font-size:15px;
+  transition:border-color .15s,background .15s;
+}
+.field input:focus,.field textarea:focus,.field select:focus{
+  outline:none;border-color:var(--accent);background:var(--surface-2);
+}
+.field input:disabled,.field textarea:disabled,.field select:disabled{
+  opacity:0.55;cursor:not-allowed;
+}
+.field textarea{resize:vertical;min-height:90px;font-family:'Manrope',sans-serif}
+
+.row{display:grid;gap:16px}
+.row.cols-2{grid-template-columns:1fr 1fr}
+.row.cols-3{grid-template-columns:repeat(3,1fr)}
+.row.cols-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:720px){.row.cols-2,.row.cols-3,.row.cols-4{grid-template-columns:1fr}}
+
+.btn{
+  background:var(--accent);color:#0d0e12;border:none;
+  padding:12px 22px;border-radius:11px;cursor:pointer;
+  font-weight:700;font-size:14px;letter-spacing:-0.01em;
+  font-family:'Manrope',sans-serif;display:inline-flex;align-items:center;gap:8px;
+  transition:transform .15s,box-shadow .15s;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 10px 30px -10px rgba(212,255,58,0.5)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:0.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn.ghost:hover{background:var(--surface-2);box-shadow:none}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.sm{padding:8px 14px;font-size:12px;border-radius:8px}
+
+.check-group{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.check{
+  display:inline-flex;align-items:center;gap:10px;cursor:pointer;
+  padding:10px 16px;border-radius:10px;background:var(--bg-2);
+  border:1px solid var(--border);transition:all .15s;user-select:none;
+  font-size:14px;font-weight:600;
+}
+.check:hover{border-color:var(--text-faint)}
+.check input{display:none}
+.check-box{
+  width:18px;height:18px;border-radius:5px;border:2px solid var(--text-faint);
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.check.yes input:checked ~ .check-box{background:var(--success);border-color:var(--success)}
+.check.no  input:checked ~ .check-box{background:var(--danger);border-color:var(--danger)}
+.check input:checked ~ .check-box::after{content:"✓";color:#0d0e12;font-weight:900;font-size:13px}
+.check.no input:checked ~ .check-box::after{content:"✕";color:#fff}
+.check.selected{border-color:var(--accent);background:rgba(212,255,58,0.05)}
+
+.chip-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.chip{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--bg-2);border:1px solid var(--border);
+  padding:9px 14px;border-radius:99px;cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--text-dim);
+  transition:all .15s;user-select:none;
+}
+.chip:hover{color:var(--text);border-color:var(--text-faint)}
+.chip input{display:none}
+.chip.active{background:var(--accent);color:#0d0e12;border-color:var(--accent);font-weight:700}
+.chip::before{
+  content:"";width:14px;height:14px;border-radius:50%;
+  border:1.5px solid var(--text-faint);transition:all .15s;
+  display:flex;align-items:center;justify-content:center;
+}
+.chip.active::before{background:#0d0e12;border-color:#0d0e12;content:"✓";color:var(--accent);font-size:9px;font-weight:900}
+
+.meta-item{
+  background:var(--bg-2);border:1px solid var(--border-soft);
+  border-radius:14px;padding:18px;margin-bottom:12px;
+  display:grid;grid-template-columns:42px 1fr auto;gap:16px;align-items:start;
+  transition:border-color .2s;
+}
+.meta-item.done{border-color:rgba(122,255,157,0.3);background:rgba(122,255,157,0.03)}
+.meta-item.undone{border-color:rgba(255,94,108,0.2)}
+.meta-num{
+  width:38px;height:38px;border-radius:10px;
+  background:var(--surface-2);display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent);
+}
+.meta-content{display:flex;flex-direction:column;gap:10px;min-width:0}
+.meta-text{font-size:15px;line-height:1.5;font-weight:500}
+.meta-text.editable{
+  background:var(--surface);padding:10px 12px;border-radius:8px;
+  border:1px solid var(--border);outline:none;
+}
+.meta-text.editable:focus{border-color:var(--accent)}
+.meta-obs{
+  background:var(--surface);border:1px solid var(--border-soft);
+  border-radius:8px;padding:10px 12px;color:var(--text-dim);font-size:13px;
+  resize:vertical;min-height:50px;font-family:'Manrope',sans-serif;
+}
+.meta-obs:focus{outline:none;border-color:var(--accent);color:var(--text)}
+.meta-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+
+.slider-row{display:flex;align-items:center;gap:16px}
+.slider-row input[type=range]{flex:1;accent-color:var(--accent)}
+.slider-value{
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;
+  color:var(--accent);min-width:60px;text-align:right;
+}
+
+.status-bar{
+  display:flex;align-items:center;gap:14px;padding:14px 18px;
+  background:var(--surface-2);border-radius:12px;
+  border-left:3px solid var(--accent);margin-bottom:24px;
+}
+.status-icon{font-size:20px}
+.status-text strong{display:block;font-size:14px;margin-bottom:2px}
+.status-text span{font-size:13px;color:var(--text-dim)}
+
+.pill{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 10px;
+  border-radius:99px;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.05em;
+  font-family:'JetBrains Mono',monospace;
+}
+.pill.success{background:rgba(122,255,157,0.15);color:var(--success)}
+.pill.warn{background:rgba(255,179,71,0.15);color:var(--warn)}
+.pill.danger{background:rgba(255,94,108,0.15);color:var(--danger)}
+.pill.info{background:rgba(110,193,255,0.15);color:var(--info)}
+.pill.neutral{background:var(--surface-2);color:var(--text-dim)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.kpi-grid{grid-template-columns:1fr}}
+.kpi{
+  background:var(--surface);border:1px solid var(--border-soft);
+  border-radius:16px;padding:22px;
+}
+.kpi-label{font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;font-weight:600;margin-bottom:10px}
+.kpi-value{font-family:'Fraunces',serif;font-size:42px;font-weight:700;line-height:1;color:var(--text)}
+.kpi-value.accent{color:var(--accent)}
+.kpi-unit{font-size:18px;color:var(--text-faint);margin-left:4px}
+.kpi-trend{font-size:12px;margin-top:8px;color:var(--text-dim)}
+
+.chart-wrap{
+  background:var(--surface);border:1px solid var(--border-soft);
+  border-radius:16px;padding:24px;margin-bottom:20px;
+}
+.chart-wrap h3{font-size:16px;margin-bottom:16px;font-weight:600}
+.chart-canvas{position:relative;height:260px}
+
+.history-list{display:flex;flex-direction:column;gap:10px}
+.history-item{
+  background:var(--surface);border:1px solid var(--border-soft);
+  border-radius:12px;padding:16px 20px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  cursor:pointer;transition:all .15s;
+}
+.history-item:hover{border-color:var(--accent);transform:translateX(4px)}
+.history-meta{display:flex;align-items:center;gap:14px;min-width:0;flex:1}
+.history-date{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-dim);min-width:90px}
+.history-title{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.coach-phrase{
+  background:linear-gradient(135deg,rgba(212,255,58,0.05),rgba(122,255,157,0.03));
+  border:1px solid rgba(212,255,58,0.2);border-radius:18px;
+  padding:32px;margin:24px 0;text-align:center;position:relative;
+}
+.coach-phrase::before{
+  content:"❝";font-family:'Fraunces',serif;font-size:80px;
+  color:var(--accent);position:absolute;top:-10px;left:24px;line-height:1;opacity:0.4;
+}
+.coach-phrase blockquote{
+  font-family:'Fraunces',serif;font-style:italic;font-weight:500;
+  font-size:22px;line-height:1.4;color:var(--text);margin:0;
+}
+.coach-phrase cite{
+  display:block;margin-top:12px;font-size:12px;color:var(--text-dim);
+  letter-spacing:0.1em;text-transform:uppercase;font-family:'Manrope',sans-serif;font-style:normal;
+}
+
+.empty{
+  text-align:center;padding:60px 20px;color:var(--text-dim);
+  border:1px dashed var(--border);border-radius:14px;
+}
+.empty-icon{font-size:42px;margin-bottom:12px;opacity:0.5}
+.empty p{margin-top:8px;font-size:14px}
+
+.hidden{display:none !important}
+.mt-2{margin-top:8px}.mt-4{margin-top:16px}.mt-6{margin-top:24px}.mt-8{margin-top:32px}
+.text-dim{color:var(--text-dim)}
+
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:10px;max-width:380px}
+.toast{
+  background:var(--surface);border:1px solid var(--border);
+  border-left:3px solid var(--accent);border-radius:12px;
+  padding:14px 18px;display:flex;gap:12px;align-items:flex-start;
+  animation:slideIn .3s ease-out;box-shadow:0 12px 40px -12px rgba(0,0,0,0.5);
+}
+.toast.success{border-left-color:var(--success)}
+.toast.error{border-left-color:var(--danger)}
+.toast.warn{border-left-color:var(--warn)}
+.toast strong{display:block;font-size:14px;margin-bottom:2px}
+.toast span{font-size:13px;color:var(--text-dim)}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+.submit-bar{
+  background:linear-gradient(135deg,rgba(212,255,58,0.08),rgba(122,255,157,0.04));
+  border:1px solid rgba(212,255,58,0.25);border-radius:18px;
+  padding:24px;margin-top:24px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+}
+.submit-bar .info strong{display:block;font-size:16px;margin-bottom:4px}
+.submit-bar .info span{color:var(--text-dim);font-size:13px}
+.submit-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* Splash setup */
+.splash{
+  position:fixed;inset:0;background:var(--bg);z-index:1000;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.splash-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:40px;max-width:560px;width:100%;
+}
+.splash-card h2{font-size:28px;margin-bottom:12px}
+.splash-card p{color:var(--text-dim);line-height:1.6;margin-bottom:20px}
+
+.save-indicator{
+  position:fixed;bottom:24px;left:24px;z-index:150;
+  background:var(--surface);border:1px solid var(--border);
+  padding:8px 14px;border-radius:10px;font-size:12px;
+  color:var(--text-dim);display:flex;align-items:center;gap:8px;
+  opacity:0;transition:opacity .2s;
+  font-family:'JetBrains Mono',monospace;
+}
+.save-indicator.visible{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- SPLASH DE PRIMER USO -->
+<div class="splash hidden" id="splash">
+  <div class="splash-card">
+    <div class="hero-eyebrow">CONFIGURACIÓN INICIAL</div>
+    <h2 class="display">Conecta tu backend</h2>
+    <p>Pega la URL de tu Apps Script publicado como Web App para empezar. Es donde se guardarán todas tus hojas semanales.</p>
+    <div class="field">
+      <label>URL del Apps Script</label>
+      <input type="url" id="splashUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <button class="btn" id="splashConnect">Conectar →</button>
+    <p style="margin-top:16px;font-size:12px">¿No tienes la URL aún? Revisa <code style="background:var(--bg-2);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px">README.md</code> con las instrucciones de instalación de Apps Script.</p>
+  </div>
+</div>
+
+<div class="app">
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">H</div>
+    <div class="brand-text">
+      <div class="title">Hoja de Seguimiento</div>
+      <div class="sub">Hewser · Coaching Semanal</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="conn-status" id="connStatus">
+      <span class="conn-dot loading" id="connDot"></span>
+      <span id="connText">Conectando…</span>
+    </div>
+    <div class="role-switch" id="roleSwitch">
+      <button data-role="empresario" class="active">👤 Empresario</button>
+      <button data-role="coach">🎯 Coach</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-eyebrow">Semana <span id="weekNumber">—</span> · <span id="weekRange">…</span></div>
+  <h1 class="display">Tu avance, <em>en una página.</em></h1>
+  <p class="hero-meta" id="heroSub">Llena tu hoja antes de la sesión y deja que tu coach vea el resultado en tiempo real.</p>
+</section>
+
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-tab="form">📝 Hoja actual <span class="badge" id="formStatusBadge">En curso</span></button>
+  <button class="tab" data-tab="stats">📊 Estadísticas</button>
+  <button class="tab" data-tab="history">📚 Historial</button>
+  <button class="tab" data-tab="settings">⚙️ Configuración</button>
+</nav>
+
+<!-- TAB FORM -->
+<div class="tab-content" data-content="form">
+
+  <div id="reminderBanner" class="status-bar hidden">
+    <div class="status-icon">⏰</div>
+    <div class="status-text">
+      <strong id="reminderTitle">Recordatorio</strong>
+      <span id="reminderDetail"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">00</div>
+        <div>
+          <h2>Datos de la sesión</h2>
+          <div class="card-subtitle">Información básica de esta semana</div>
+        </div>
+      </div>
+    </div>
+    <div class="row cols-2">
+      <div class="field">
+        <label>Nombre</label>
+        <input type="text" data-field="nombre" placeholder="Tu nombre completo">
+      </div>
+      <div class="field">
+        <label>Empresa</label>
+        <input type="text" data-field="empresa" placeholder="Nombre de tu empresa">
+      </div>
+    </div>
+    <div class="row cols-3">
+      <div class="field">
+        <label>Día de sesión</label>
+        <select data-field="dia">
+          <option value="">Selecciona…</option>
+          <option value="Lunes">Lunes</option>
+          <option value="Martes">Martes</option>
+          <option value="Miércoles">Miércoles</option>
+          <option value="Jueves">Jueves</option>
+          <option value="Viernes">Viernes</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Hora</label>
+        <input type="time" data-field="hora" value="17:00">
+      </div>
+      <div class="field">
+        <label>Fecha de sesión</label>
+        <input type="date" data-field="fecha">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">01</div>
+        <div>
+          <h2>De la sesión anterior</h2>
+          <div class="card-subtitle">¿Qué te llevaste de la última sesión?</div>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>¿Recibí valor en la sesión?</label>
+      <div class="check-group">
+        <label class="check yes">
+          <input type="radio" name="valorSesion" value="si" data-field="valorSesion">
+          <span class="check-box"></span> Sí
+        </label>
+        <label class="check no">
+          <input type="radio" name="valorSesion" value="no" data-field="valorSesion">
+          <span class="check-box"></span> No
+        </label>
+      </div>
+    </div>
+    <div class="field">
+      <label>Lo principal que aprendí en la sesión</label>
+      <textarea data-field="aprendizajeSesion" rows="3" placeholder="Ej. seleccionar a tus clientes, escuchar antes de proponer..."></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">02</div>
+        <div>
+          <h2>Metas / Actividades de la semana</h2>
+          <div class="card-subtitle"><span id="metasHint">Marca como cumplidas y agrega observaciones</span></div>
+        </div>
+      </div>
+      <div id="coachMetasActions" class="hidden">
+        <button class="btn sm ghost" id="addMetaBtn">+ Agregar meta</button>
+      </div>
+    </div>
+    <div id="metasList"></div>
+    <div id="metasEmpty" class="empty hidden">
+      <div class="empty-icon">🎯</div>
+      <strong>Tu coach aún no ha definido metas para esta semana.</strong>
+      <p>Se llenan durante la sesión de coaching.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">03</div>
+        <div>
+          <h2>Reflexiones de la semana</h2>
+          <div class="card-subtitle">Llenar 24h antes de la próxima sesión</div>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Mi principal logro de esta semana</label>
+      <textarea data-field="logro" rows="2" placeholder="¿Qué te enorgullece de esta semana?"></textarea>
+    </div>
+    <div class="field">
+      <label>El mayor reto / obstáculo que enfrenté</label>
+      <textarea data-field="reto" rows="2" placeholder="¿Qué te frenó o costó más trabajo?"></textarea>
+    </div>
+    <div class="field">
+      <label>Lo que aprendí esta semana (libros, videos, cursos, estrategias…)</label>
+      <textarea data-field="aprendizajeSemana" rows="2" placeholder="Recursos, ideas, aplicaciones..."></textarea>
+    </div>
+    <div class="field">
+      <label>Mi principal meta para la próxima semana</label>
+      <textarea data-field="metaProxima" rows="2" placeholder="Una sola meta clara y medible..."></textarea>
+    </div>
+    <div class="field">
+      <label>Ayuda primordial que necesito de mi coach</label>
+      <textarea data-field="ayudaCoach" rows="2" placeholder="¿En qué quieres que se enfoque la próxima sesión?"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">04</div>
+        <div>
+          <h2>Resumen del estado de tu negocio</h2>
+          <div class="card-subtitle">Indicadores y enfoque de la semana</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row cols-3">
+      <div class="field">
+        <label>Horas invertidas EN mi negocio</label>
+        <input type="number" data-field="horas" min="0" max="168" step="0.5" placeholder="Ej. 12">
+      </div>
+      <div class="field">
+        <label>Nivel de motivación / entusiasmo</label>
+        <div class="slider-row">
+          <input type="range" data-field="motivacion" min="0" max="100" step="5" value="50">
+          <span class="slider-value mono" id="motivacionVal">50%</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>El negocio va…</label>
+        <input type="text" data-field="negocioVa" placeholder="Genial, más o menos, de maravilla...">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Me he estado concentrando en…</label>
+      <div class="chip-group" data-multi="concentracion">
+        <label class="chip"><input type="checkbox" value="Sistematización y mejora de procesos">Sistematización y mejora de procesos</label>
+        <label class="chip"><input type="checkbox" value="Tasa de Conversión">Tasa de Conversión</label>
+        <label class="chip"><input type="checkbox" value="Número de Transacciones">Número de Transacciones</label>
+        <label class="chip"><input type="checkbox" value="Monto Promedio de Venta">Monto Promedio de Venta</label>
+        <label class="chip"><input type="checkbox" value="Márgenes">Márgenes</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>También he trabajado en…</label>
+      <div class="chip-group" data-multi="trabajado">
+        <label class="chip"><input type="checkbox" value="Probar y Medir / Indicadores">Probar y Medir / Indicadores</label>
+        <label class="chip"><input type="checkbox" value="Documentando más Sistemas">Documentando más Sistemas</label>
+        <label class="chip"><input type="checkbox" value="Entrenando/Motivando a mi Gente">Entrenando/Motivando a mi Gente</label>
+        <label class="chip"><input type="checkbox" value="Definiendo Puestos y Perfiles">Definiendo Puestos y Perfiles</label>
+        <label class="chip"><input type="checkbox" value="Cuestiones de Operación">Cuestiones de Operación</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Comentarios adicionales</label>
+      <textarea data-field="comentarios" rows="3" placeholder="Cualquier cosa que quieras compartir con tu coach..."></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">★</div>
+        <div>
+          <h2>Frase de la semana</h2>
+          <div class="card-subtitle">Tu coach la define al final de cada sesión</div>
+        </div>
+      </div>
+    </div>
+    <div id="fraseDisplay" class="coach-phrase">
+      <blockquote id="fraseText">Lo que no se mide, no se mejora.</blockquote>
+      <cite>— Tu Coach</cite>
+    </div>
+    <div id="fraseEditor" class="hidden">
+      <div class="field">
+        <label>Frase para esta semana (la verá el empresario)</label>
+        <textarea data-field="frase" rows="2" placeholder="Una frase corta, memorable, que inspire la semana..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="submit-bar">
+    <div class="info">
+      <strong id="submitTitle">Cuando termines, envía la hoja a tu coach</strong>
+      <span id="submitSub">Se guarda en Sheets y se manda correo al coach.</span>
+    </div>
+    <div class="submit-actions">
+      <button class="btn ghost" id="reloadBtn">↻ Recargar desde Sheets</button>
+      <button class="btn" id="sendBtn">📤 Enviar al coach</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- TAB STATS -->
+<div class="tab-content hidden" data-content="stats">
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label">Cumplimiento promedio</div>
+      <div class="kpi-value accent mono" id="kpiCumplimiento">—<span class="kpi-unit">%</span></div>
+      <div class="kpi-trend">Últimas 8 semanas</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Hojas entregadas</div>
+      <div class="kpi-value mono" id="kpiHojas">0</div>
+      <div class="kpi-trend">En total</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Racha actual</div>
+      <div class="kpi-value mono" id="kpiRacha">0<span class="kpi-unit">sem</span></div>
+      <div class="kpi-trend">A tiempo consecutivas</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Motivación promedio</div>
+      <div class="kpi-value mono" id="kpiMotivacion">—<span class="kpi-unit">%</span></div>
+      <div class="kpi-trend">Últimas 8 semanas</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <h3>📈 Cumplimiento de metas por semana</h3>
+    <div class="chart-canvas"><canvas id="chartCumplimiento"></canvas></div>
+  </div>
+
+  <div class="row cols-2">
+    <div class="chart-wrap">
+      <h3>⚡ Motivación a lo largo del tiempo</h3>
+      <div class="chart-canvas"><canvas id="chartMotivacion"></canvas></div>
+    </div>
+    <div class="chart-wrap">
+      <h3>⏱️ Horas invertidas EN tu negocio</h3>
+      <div class="chart-canvas"><canvas id="chartHoras"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <h3>🎯 Enfoque recurrente</h3>
+    <div class="chart-canvas"><canvas id="chartEnfoque"></canvas></div>
+  </div>
+</div>
+
+<!-- TAB HISTORY -->
+<div class="tab-content hidden" data-content="history">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">📚</div>
+        <div>
+          <h2>Hojas anteriores</h2>
+          <div class="card-subtitle">Haz clic en cualquiera para revisarla</div>
+        </div>
+      </div>
+      <button class="btn sm ghost" id="refreshHistoryBtn">↻ Recargar</button>
+    </div>
+    <div id="historyList" class="history-list"></div>
+    <div id="historyEmpty" class="empty hidden">
+      <div class="empty-icon">📂</div>
+      <strong>Aún no hay hojas guardadas</strong>
+      <p>Cuando completes y envíes una, aparecerá aquí.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB SETTINGS -->
+<div class="tab-content hidden" data-content="settings">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">🔌</div>
+        <div>
+          <h2>Backend</h2>
+          <div class="card-subtitle">Conexión con tu Apps Script</div>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>URL del Apps Script</label>
+      <input type="url" id="backendUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <button class="btn" id="testBackendBtn">🔍 Probar conexión</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">📧</div>
+        <div>
+          <h2>Correos para notificaciones</h2>
+          <div class="card-subtitle">Se guardan en tu Google Sheet</div>
+        </div>
+      </div>
+    </div>
+    <div class="row cols-2">
+      <div class="field">
+        <label>Email del empresario</label>
+        <input type="email" data-config="emailEmpresario" placeholder="empresario@ejemplo.com">
+      </div>
+      <div class="field">
+        <label>Email del coach</label>
+        <input type="email" data-config="emailCoach" placeholder="coach@actioncoach.com">
+      </div>
+    </div>
+    <div class="field">
+      <label>Nombre del coach</label>
+      <input type="text" data-config="nombreCoach" placeholder="Ej. Joaquín Pardavé">
+    </div>
+    <button class="btn" id="saveConfigBtn">💾 Guardar configuración</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">📡</div>
+        <div>
+          <h2>¿Cómo funcionan los recordatorios?</h2>
+          <div class="card-subtitle">Triggers puntuales, no diarios</div>
+        </div>
+      </div>
+    </div>
+    <p class="text-dim" style="line-height:1.6;font-size:14px">
+      Cada vez que el coach establece o cambia la fecha y hora de tu sesión, el backend agenda automáticamente
+      un trigger único que se disparará exactamente <strong style="color:var(--text)">24 horas antes</strong> de esa sesión.
+    </p>
+    <p class="text-dim" style="line-height:1.6;font-size:14px;margin-top:12px">
+      Si en ese momento ya enviaste tu hoja, no pasa nada. Si todavía no la enviaste, te llega un correo
+      a ti y una alerta al coach. Es un solo correo, en el momento exacto.
+    </p>
+  </div>
+</div>
+
+</div>
+
+<div class="save-indicator" id="saveIndicator">💾 Guardado</div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ================================================================ */
+/*  CONFIG Y ESTADO                                                  */
+/* ================================================================ */
+
+const LS_BACKEND = 'hewser_hoja_backend_url';
+const LS_ROLE = 'hewser_hoja_role';
+
+let state = {
+  backendUrl: localStorage.getItem(LS_BACKEND) || '',
+  role: localStorage.getItem(LS_ROLE) || 'empresario',
+  currentWeek: getCurrentWeekId(),
+  data: null,
+  config: { emailEmpresario:'', emailCoach:'', nombreCoach:'', frase:'Lo que no se mide, no se mejora.' },
+  hojasIndex: [],
+  charts: {},
+  connected: false
+};
+
+const DEFAULT_METAS = () => [
+  {texto:'', cumplida:null, observaciones:''},
+  {texto:'', cumplida:null, observaciones:''},
+  {texto:'', cumplida:null, observaciones:''},
+  {texto:'', cumplida:null, observaciones:''},
+  {texto:'', cumplida:null, observaciones:''}
+];
+
+function emptyWeekData(){
+  return {
+    nombre:'', empresa:'', dia:'', hora:'17:00', fecha:'',
+    valorSesion:'', aprendizajeSesion:'',
+    metas: DEFAULT_METAS(),
+    logro:'', reto:'', aprendizajeSemana:'', metaProxima:'', ayudaCoach:'',
+    horas:0, motivacion:50, negocioVa:'',
+    concentracion:[], trabajado:[],
+    comentarios:'',
+    frase: state.config.frase || 'Lo que no se mide, no se mejora.',
+    enviada:false, enviadaFecha:null
+  };
+}
+
+function getCurrentWeekId(d=new Date()){
+  const t = new Date(d.valueOf());
+  t.setHours(0,0,0,0);
+  t.setDate(t.getDate() + 3 - ((t.getDay() + 6) % 7));
+  const week1 = new Date(t.getFullYear(),0,4);
+  const wk = 1 + Math.round(((t - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+  return `${t.getFullYear()}-W${String(wk).padStart(2,'0')}`;
+}
+
+function weekRange(weekId){
+  const [yr,wk] = weekId.split('-W').map(Number);
+  const jan4 = new Date(yr,0,4);
+  const dayOfWeek = (jan4.getDay() + 6) % 7;
+  const mondayW1 = new Date(jan4); mondayW1.setDate(jan4.getDate() - dayOfWeek);
+  const monday = new Date(mondayW1); monday.setDate(mondayW1.getDate() + (wk-1)*7);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+  const fmt = d => d.toLocaleDateString('es-MX',{day:'numeric',month:'short'});
+  return `${fmt(monday)} – ${fmt(sunday)}`;
+}
+
+/* ================================================================ */
+/*  CLIENTE HTTP                                                     */
+/* ================================================================ */
+
+async function apiGet(action, params={}){
+  if(!state.backendUrl) throw new Error('Backend no configurado');
+  const url = new URL(state.backendUrl);
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k,v]) => v !== undefined && url.searchParams.set(k, v));
+  const r = await fetch(url.toString(), { method:'GET' });
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  const data = await r.json();
+  if(!data.ok) throw new Error(data.error || 'error backend');
+  return data;
+}
+
+async function apiPost(payload){
+  if(!state.backendUrl) throw new Error('Backend no configurado');
+  // Usamos text/plain para evitar preflight CORS de Apps Script
+  const r = await fetch(state.backendUrl, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload),
+    redirect:'follow'
+  });
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  const data = await r.json();
+  if(!data.ok) throw new Error(data.error || 'error backend');
+  return data;
+}
+
+/* ================================================================ */
+/*  INICIALIZACIÓN                                                   */
+/* ================================================================ */
+
+async function init(){
+  // ¿Está configurado el backend?
+  if(!state.backendUrl){
+    document.getElementById('splash').classList.remove('hidden');
+    bindSplash();
+    return;
+  }
+  document.getElementById('splash').classList.add('hidden');
+
+  bindUI();
+  await connectAndLoad();
+}
+
+async function connectAndLoad(){
+  setConn('loading','Conectando…');
+  try{
+    // Health check
+    const h = await apiGet('health');
+    setConn('ok', 'Conectado · v' + (h.version||'?'));
+    state.connected = true;
+
+    // Cargar config + índice + hoja actual en paralelo
+    const [cfgRes, listRes] = await Promise.all([
+      apiGet('config'),
+      apiGet('list')
+    ]);
+    state.config = { ...state.config, ...cfgRes.config };
+    state.hojasIndex = listRes.hojas || [];
+
+    await loadWeek(state.currentWeek);
+
+    renderWeekLabel();
+    renderForm();
+    renderConfigInputs();
+    applyRole();
+    evaluateReminder();
+  } catch(e){
+    setConn('err','Sin conexión');
+    state.connected = false;
+    toast('error', 'Error de conexión', e.message);
+  }
+}
+
+async function loadWeek(weekId, nombre){
+  state.currentWeek = weekId;
+  try{
+    const r = await apiGet('get', { weekId, nombre: nombre || state.data?.nombre || '' });
+    state.data = r.hoja || emptyWeekData();
+    if(!state.data.metas || !state.data.metas.length) state.data.metas = DEFAULT_METAS();
+  } catch(e){
+    state.data = emptyWeekData();
+  }
+}
+
+function setConn(status, text){
+  const dot = document.getElementById('connDot');
+  const txt = document.getElementById('connText');
+  dot.className = 'conn-dot ' + status;
+  txt.textContent = text;
+}
+
+/* ================================================================ */
+/*  RENDER                                                            */
+/* ================================================================ */
+
+function renderWeekLabel(){
+  const wk = state.currentWeek.split('-W')[1];
+  document.getElementById('weekNumber').textContent = wk;
+  document.getElementById('weekRange').textContent = weekRange(state.currentWeek);
+}
+
+function renderForm(){
+  const d = state.data;
+  document.querySelectorAll('[data-field]').forEach(el=>{
+    const f = el.dataset.field;
+    if(el.type === 'radio'){
+      el.checked = (d[f] === el.value);
+      el.closest('.check')?.classList.toggle('selected', el.checked);
+    } else if(el.type === 'range'){
+      el.value = d[f] ?? 50;
+    } else {
+      el.value = d[f] ?? '';
+    }
+  });
+  document.getElementById('motivacionVal').textContent = (d.motivacion ?? 50) + '%';
+
+  document.querySelectorAll('[data-multi]').forEach(group=>{
+    const f = group.dataset.multi;
+    const sel = d[f] || [];
+    group.querySelectorAll('label.chip').forEach(chip=>{
+      const input = chip.querySelector('input');
+      input.checked = sel.includes(input.value);
+      chip.classList.toggle('active', input.checked);
+    });
+  });
+
+  document.getElementById('fraseText').textContent = d.frase || state.config.frase;
+  renderMetas();
+  document.getElementById('formStatusBadge').textContent = d.enviada ? 'Enviada' : 'En curso';
+}
+
+function renderMetas(){
+  const list = document.getElementById('metasList');
+  const empty = document.getElementById('metasEmpty');
+  list.innerHTML = '';
+  const metas = state.data.metas || [];
+  const validas = metas.filter(m => m.texto && m.texto.trim());
+
+  if(state.role === 'empresario' && validas.length === 0){
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  const isCoach = state.role === 'coach';
+  const shown = isCoach ? metas : validas;
+
+  shown.forEach((m, idxInShown) => {
+    const realIdx = isCoach ? idxInShown : metas.indexOf(m);
+    const cumplidaClass = m.cumplida === true ? 'done' : m.cumplida === false ? 'undone' : '';
+    const div = document.createElement('div');
+    div.className = `meta-item ${cumplidaClass}`;
+    div.innerHTML = `
+      <div class="meta-num">${realIdx+1}</div>
+      <div class="meta-content">
+        ${isCoach
+          ? `<div class="meta-text editable" contenteditable="true" data-meta-text="${realIdx}">${esc(m.texto || '')}</div>`
+          : `<div class="meta-text">${esc(m.texto || '')}</div>`
+        }
+        <textarea class="meta-obs" placeholder="Observaciones..." data-meta-obs="${realIdx}">${esc(m.observaciones || '')}</textarea>
+      </div>
+      <div class="meta-actions">
+        <div class="check-group">
+          <label class="check yes">
+            <input type="radio" name="meta-${realIdx}" value="true" ${m.cumplida === true ? 'checked':''} data-meta-cumplida="${realIdx}">
+            <span class="check-box"></span> Sí
+          </label>
+          <label class="check no">
+            <input type="radio" name="meta-${realIdx}" value="false" ${m.cumplida === false ? 'checked':''} data-meta-cumplida="${realIdx}">
+            <span class="check-box"></span> No
+          </label>
+        </div>
+        ${isCoach ? `<button class="btn sm danger" data-delete-meta="${realIdx}">🗑️</button>` : ''}
+      </div>
+    `;
+    list.appendChild(div);
+  });
+
+  list.querySelectorAll('[data-meta-text]').forEach(el=>{
+    el.addEventListener('input', e=>{
+      state.data.metas[+e.target.dataset.metaText].texto = e.target.textContent;
+      scheduleSave();
+    });
+  });
+  list.querySelectorAll('[data-meta-obs]').forEach(el=>{
+    el.addEventListener('input', e=>{
+      state.data.metas[+e.target.dataset.metaObs].observaciones = e.target.value;
+      scheduleSave();
+    });
+  });
+  list.querySelectorAll('[data-meta-cumplida]').forEach(el=>{
+    el.addEventListener('change', e=>{
+      state.data.metas[+e.target.dataset.metaCumplida].cumplida = e.target.value === 'true';
+      renderMetas();
+      scheduleSave();
+    });
+  });
+  list.querySelectorAll('[data-delete-meta]').forEach(el=>{
+    el.addEventListener('click', e=>{
+      state.data.metas.splice(+e.target.dataset.deleteMeta, 1);
+      renderMetas();
+      scheduleSave();
+    });
+  });
+}
+
+function esc(s){
+  if(!s) return '';
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function applyRole(){
+  const isCoach = state.role === 'coach';
+  document.querySelectorAll('#roleSwitch button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.role === state.role);
+  });
+  document.getElementById('coachMetasActions').classList.toggle('hidden', !isCoach);
+  document.getElementById('fraseEditor').classList.toggle('hidden', !isCoach);
+  document.getElementById('fraseDisplay').classList.toggle('hidden', isCoach);
+  document.getElementById('metasHint').textContent = isCoach
+    ? 'Define hasta 5 metas. El empresario solo podrá marcarlas como cumplidas.'
+    : 'Marca cada meta como cumplida o no, y agrega observaciones.';
+  document.getElementById('submitTitle').textContent = isCoach
+    ? 'Estás en modo Coach: define metas y frase'
+    : 'Cuando termines, envía la hoja a tu coach';
+  document.getElementById('submitSub').textContent = isCoach
+    ? 'Los cambios se guardan en Sheets para tu empresario.'
+    : 'Se guarda en Sheets y se manda correo al coach.';
+  document.getElementById('sendBtn').style.display = isCoach ? 'none' : '';
+}
+
+/* ================================================================ */
+/*  AUTO-SAVE (DEBOUNCE)                                              */
+/* ================================================================ */
+
+let saveTimer = null;
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  showSaving('Guardando…');
+  saveTimer = setTimeout(async()=>{
+    if(!state.connected){
+      showSaving('Sin conexión — se reintentará al reconectar', true);
+      return;
+    }
+    try{
+      await apiPost({
+        action:'save',
+        weekId: state.currentWeek,
+        data: state.data
+      });
+      showSaving('💾 Guardado en Sheets');
+    } catch(e){
+      showSaving('⚠️ Error: ' + e.message, true);
+    }
+  }, 800);
+}
+
+function showSaving(text, isError=false){
+  const el = document.getElementById('saveIndicator');
+  el.textContent = text;
+  el.style.borderLeftColor = isError ? 'var(--danger)' : 'var(--accent)';
+  el.classList.add('visible');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(()=> el.classList.remove('visible'), 2200);
+}
+
+/* ================================================================ */
+/*  BINDINGS                                                          */
+/* ================================================================ */
+
+function bindSplash(){
+  document.getElementById('splashConnect').addEventListener('click', async ()=>{
+    const url = document.getElementById('splashUrl').value.trim();
+    if(!url) return toast('error','URL requerida','Pega la URL del Apps Script.');
+    state.backendUrl = url;
+    localStorage.setItem(LS_BACKEND, url);
+    document.getElementById('splash').classList.add('hidden');
+    bindUI();
+    await connectAndLoad();
+  });
+}
+
+function bindUI(){
+  document.querySelectorAll('#roleSwitch button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      state.role = b.dataset.role;
+      localStorage.setItem(LS_ROLE, state.role);
+      applyRole();
+      renderMetas();
+    });
+  });
+
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click', ()=>switchTab(t.dataset.tab));
+  });
+
+  document.querySelectorAll('[data-field]').forEach(el=>{
+    const evt = (el.type==='checkbox'||el.type==='radio'||el.type==='range') ? 'change' : 'input';
+    el.addEventListener(evt, ()=>{
+      const f = el.dataset.field;
+      if(el.type==='radio'){
+        if(el.checked){
+          state.data[f] = el.value;
+          document.querySelectorAll(`input[name="${el.name}"]`).forEach(r=>{
+            r.closest('.check')?.classList.toggle('selected', r.checked);
+          });
+        }
+      } else if(el.type==='range'){
+        state.data[f] = Number(el.value);
+        document.getElementById('motivacionVal').textContent = el.value+'%';
+      } else if(el.type==='number'){
+        state.data[f] = el.value === '' ? 0 : Number(el.value);
+      } else {
+        state.data[f] = el.value;
+      }
+      if(f === 'frase') document.getElementById('fraseText').textContent = el.value || 'Lo que no se mide, no se mejora.';
+      scheduleSave();
+      if(['fecha','hora','dia'].includes(f)) evaluateReminder();
+    });
+  });
+
+  document.querySelectorAll('[data-multi]').forEach(group=>{
+    const f = group.dataset.multi;
+    group.querySelectorAll('input').forEach(input=>{
+      input.addEventListener('change', ()=>{
+        const sel = [];
+        group.querySelectorAll('input:checked').forEach(i=>sel.push(i.value));
+        state.data[f] = sel;
+        group.querySelectorAll('label.chip').forEach(chip=>{
+          chip.classList.toggle('active', chip.querySelector('input').checked);
+        });
+        scheduleSave();
+      });
+    });
+  });
+
+  document.getElementById('addMetaBtn').addEventListener('click', ()=>{
+    state.data.metas.push({texto:'',cumplida:null,observaciones:''});
+    renderMetas();
+    scheduleSave();
+  });
+
+  document.getElementById('reloadBtn').addEventListener('click', async ()=>{
+    await connectAndLoad();
+    toast('success','Recargado','Datos sincronizados desde Sheets.');
+  });
+
+  document.getElementById('sendBtn').addEventListener('click', sendToCoach);
+  document.getElementById('refreshHistoryBtn').addEventListener('click', async ()=>{
+    const r = await apiGet('list');
+    state.hojasIndex = r.hojas || [];
+    renderHistory();
+  });
+
+  document.getElementById('testBackendBtn').addEventListener('click', testBackend);
+  document.getElementById('saveConfigBtn').addEventListener('click', saveConfigToBackend);
+  document.getElementById('backendUrl').addEventListener('change', e=>{
+    state.backendUrl = e.target.value.trim();
+    localStorage.setItem(LS_BACKEND, state.backendUrl);
+  });
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('hidden', c.dataset.content!==name));
+  if(name === 'stats') renderStats();
+  if(name === 'history') renderHistory();
+}
+
+/* ================================================================ */
+/*  RECORDATORIO VISUAL                                               */
+/* ================================================================ */
+
+function evaluateReminder(){
+  const banner = document.getElementById('reminderBanner');
+  banner.classList.add('hidden');
+  const fecha = state.data.fecha;
+  if(!fecha) return;
+  const sessionDate = new Date(fecha + 'T' + (state.data.hora||'17:00') + ':00');
+  const now = new Date();
+  const diffH = (sessionDate - now) / 3600000;
+
+  if(state.data.enviada){
+    banner.classList.remove('hidden');
+    banner.style.borderLeftColor = 'var(--success)';
+    document.getElementById('reminderTitle').textContent = '✅ Hoja enviada a tu coach';
+    document.getElementById('reminderDetail').textContent = 'Enviada el ' + new Date(state.data.enviadaFecha).toLocaleString('es-MX');
+    return;
+  }
+  if(diffH > 0 && diffH <= 24){
+    banner.classList.remove('hidden');
+    banner.style.borderLeftColor = 'var(--warn)';
+    document.getElementById('reminderTitle').textContent = '⏰ Te quedan menos de 24 horas';
+    document.getElementById('reminderDetail').textContent = `Tu sesión es en ${diffH.toFixed(1)} horas.`;
+  } else if(diffH < 0 && diffH > -168){
+    banner.classList.remove('hidden');
+    banner.style.borderLeftColor = 'var(--danger)';
+    document.getElementById('reminderTitle').textContent = '🚨 Sesión ya pasó';
+    document.getElementById('reminderDetail').textContent = 'La sesión ya pasó y la hoja no se envió.';
+  }
+}
+
+/* ================================================================ */
+/*  ENVIAR AL COACH                                                   */
+/* ================================================================ */
+
+async function sendToCoach(){
+  if(!state.data.nombre || !state.data.empresa){
+    return toast('error','Faltan datos','Completa nombre y empresa antes de enviar.');
+  }
+  if(!state.config.emailCoach){
+    return toast('warn','Falta configurar coach','Agrega el email del coach en Configuración.');
+  }
+  try{
+    showSaving('Enviando…');
+    const r = await apiPost({
+      action:'send',
+      weekId: state.currentWeek,
+      data: state.data
+    });
+    state.data.enviada = true;
+    state.data.enviadaFecha = Date.now();
+    renderForm();
+    evaluateReminder();
+    showSaving('✅ Enviada');
+    toast('success','Hoja enviada','Tu coach recibió la notificación por correo.');
+  } catch(e){
+    toast('error','Error al enviar', e.message);
+  }
+}
+
+/* ================================================================ */
+/*  ESTADÍSTICAS                                                      */
+/* ================================================================ */
+
+function renderStats(){
+  const data = [...state.hojasIndex].sort((a,b)=> a.weekId.localeCompare(b.weekId));
+  const recent = data.slice(-8);
+
+  if(data.length === 0){
+    document.getElementById('kpiCumplimiento').innerHTML = '0<span class="kpi-unit">%</span>';
+    document.getElementById('kpiHojas').textContent = '0';
+    document.getElementById('kpiRacha').innerHTML = '0<span class="kpi-unit">sem</span>';
+    document.getElementById('kpiMotivacion').innerHTML = '—<span class="kpi-unit">%</span>';
+  } else {
+    const avgCump = Math.round(recent.reduce((a,b)=>a+b.cumplimiento,0)/recent.length);
+    const enviadas = data.filter(x=>x.enviada).length;
+    const avgMot = Math.round(recent.reduce((a,b)=>a+b.motivacion,0)/recent.length);
+    let racha = 0;
+    for(let i = data.length-1; i>=0; i--){ if(data[i].enviada) racha++; else break; }
+    document.getElementById('kpiCumplimiento').innerHTML = `${avgCump}<span class="kpi-unit">%</span>`;
+    document.getElementById('kpiHojas').textContent = enviadas;
+    document.getElementById('kpiRacha').innerHTML = `${racha}<span class="kpi-unit">sem</span>`;
+    document.getElementById('kpiMotivacion').innerHTML = `${avgMot}<span class="kpi-unit">%</span>`;
+  }
+  drawCharts(recent);
+}
+
+function drawCharts(weeks){
+  const labels = weeks.map(w=>'S'+w.weekId.split('-W')[1]);
+  Chart.defaults.color = '#9aa1b3';
+  Chart.defaults.font.family = "'Manrope',sans-serif";
+  Chart.defaults.borderColor = '#2e3340';
+  Object.values(state.charts).forEach(c=>c?.destroy?.());
+
+  state.charts.cump = new Chart(document.getElementById('chartCumplimiento'),{
+    type:'bar',
+    data:{labels,datasets:[{label:'% Cumplimiento',data:weeks.map(w=>w.cumplimiento),
+      backgroundColor:'rgba(212,255,58,0.6)',borderColor:'#d4ff3a',borderWidth:1,borderRadius:6}]},
+    options:{maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}}}
+  });
+  state.charts.mot = new Chart(document.getElementById('chartMotivacion'),{
+    type:'line',
+    data:{labels,datasets:[{label:'Motivación',data:weeks.map(w=>w.motivacion),
+      borderColor:'#7aff9d',backgroundColor:'rgba(122,255,157,0.1)',
+      fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'#7aff9d'}]},
+    options:{maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}}}
+  });
+  state.charts.hrs = new Chart(document.getElementById('chartHoras'),{
+    type:'bar',
+    data:{labels,datasets:[{label:'Horas',data:weeks.map(w=>w.horas),
+      backgroundColor:'rgba(110,193,255,0.5)',borderColor:'#6ec1ff',borderWidth:1,borderRadius:6}]},
+    options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+  });
+  const counts = {};
+  weeks.forEach(w=>{
+    (w.concentracion||[]).concat(w.trabajado||[]).forEach(c=>{ counts[c]=(counts[c]||0)+1 });
+  });
+  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  state.charts.enf = new Chart(document.getElementById('chartEnfoque'),{
+    type:'bar',
+    data:{labels:entries.map(e=>e[0]),datasets:[{label:'Veces',data:entries.map(e=>e[1]),
+      backgroundColor:'rgba(212,255,58,0.4)',borderColor:'#d4ff3a',borderWidth:1,borderRadius:6}]},
+    options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{beginAtZero:true,ticks:{stepSize:1}}}}
+  });
+}
+
+/* ================================================================ */
+/*  HISTORIAL                                                         */
+/* ================================================================ */
+
+function renderHistory(){
+  const list = document.getElementById('historyList');
+  const empty = document.getElementById('historyEmpty');
+  list.innerHTML = '';
+  const sorted = [...state.hojasIndex].sort((a,b)=>b.weekId.localeCompare(a.weekId));
+  if(sorted.length === 0){ empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  sorted.forEach(w=>{
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.innerHTML = `
+      <div class="history-meta">
+        <span class="history-date mono">${w.weekId}</span>
+        <span class="history-title">${esc(w.nombre)} · ${weekRange(w.weekId)}</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="pill ${w.cumplimiento>=80?'success':w.cumplimiento>=50?'warn':'danger'}">${w.cumplimiento}% cumplido</span>
+        ${w.enviada ? '<span class="pill success">✓ enviada</span>' : '<span class="pill neutral">pendiente</span>'}
+      </div>`;
+    div.addEventListener('click', async ()=>{
+      await loadWeek(w.weekId, w.nombre);
+      switchTab('form');
+      renderWeekLabel();
+      renderForm();
+      evaluateReminder();
+    });
+    list.appendChild(div);
+  });
+}
+
+/* ================================================================ */
+/*  CONFIG                                                            */
+/* ================================================================ */
+
+function renderConfigInputs(){
+  document.getElementById('backendUrl').value = state.backendUrl;
+  document.querySelectorAll('[data-config]').forEach(el=>{
+    el.value = state.config[el.dataset.config] || '';
+  });
+}
+
+async function saveConfigToBackend(){
+  const newCfg = {};
+  document.querySelectorAll('[data-config]').forEach(el=>{
+    newCfg[el.dataset.config] = el.value;
+  });
+  state.config = { ...state.config, ...newCfg };
+  try{
+    await apiPost({ action:'config', config: newCfg });
+    toast('success','Configuración guardada','Los correos se enviarán a estas direcciones.');
+  } catch(e){
+    toast('error','Error al guardar', e.message);
+  }
+}
+
+async function testBackend(){
+  const url = document.getElementById('backendUrl').value.trim();
+  state.backendUrl = url;
+  localStorage.setItem(LS_BACKEND, url);
+  try{
+    const r = await apiGet('health');
+    toast('success','Conexión OK','Backend versión ' + (r.version||'?'));
+    setConn('ok','Conectado · v'+(r.version||'?'));
+    state.connected = true;
+  } catch(e){
+    toast('error','Sin conexión', e.message);
+    setConn('err','Sin conexión');
+  }
+}
+
+/* ================================================================ */
+/*  TOASTS                                                            */
+/* ================================================================ */
+
+function toast(type, title, msg){
+  const wrap = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<div><strong>${title}</strong><span>${msg||''}</span></div>`;
+  wrap.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(20px)';t.style.transition='all .25s';setTimeout(()=>t.remove(),250)}, 4000);
+}
+
+init();
+</script>
+</body>
+</html>
