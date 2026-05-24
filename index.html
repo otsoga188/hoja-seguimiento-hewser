@@ -346,6 +346,38 @@ header.topbar{
 .splash-card h2{font-size:28px;margin-bottom:12px}
 .splash-card p{color:var(--text-dim);line-height:1.6;margin-bottom:20px}
 
+/* PIN modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(13,14,18,0.85);backdrop-filter:blur(8px);
+  z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.modal-overlay.hidden{display:none}
+.modal-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:36px;max-width:420px;width:100%;
+}
+.modal-card .lock-icon{font-size:42px;text-align:center;margin-bottom:8px}
+.modal-card h3{font-size:22px;text-align:center;margin-bottom:8px}
+.modal-card .modal-sub{color:var(--text-dim);text-align:center;font-size:14px;margin-bottom:24px;line-height:1.5}
+.pin-input{
+  width:100%;background:var(--bg-2);border:1px solid var(--border);
+  color:var(--text);padding:16px;border-radius:12px;
+  font-family:'JetBrains Mono',monospace;font-size:24px;letter-spacing:0.4em;
+  text-align:center;font-weight:700;
+}
+.pin-input:focus{outline:none;border-color:var(--accent);background:var(--surface-2)}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.modal-actions .btn{flex:1;justify-content:center}
+.pin-error{color:var(--danger);font-size:13px;text-align:center;margin-top:12px;min-height:18px}
+
+.coach-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(212,255,58,0.1);color:var(--accent);
+  padding:6px 12px;border-radius:99px;font-size:12px;font-weight:700;
+  border:1px solid rgba(212,255,58,0.3);
+  font-family:'JetBrains Mono',monospace;letter-spacing:0.04em;
+}
+
 .save-indicator{
   position:fixed;bottom:24px;left:24px;z-index:150;
   background:var(--surface);border:1px solid var(--border);
@@ -371,6 +403,21 @@ header.topbar{
     </div>
     <button class="btn" id="splashConnect">Conectar →</button>
     <p style="margin-top:16px;font-size:12px">¿No tienes la URL aún? Revisa <code style="background:var(--bg-2);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px">README.md</code> con las instrucciones de instalación de Apps Script.</p>
+  </div>
+</div>
+
+<!-- MODAL PIN COACH -->
+<div class="modal-overlay hidden" id="pinModal">
+  <div class="modal-card">
+    <div class="lock-icon">🔒</div>
+    <h3 id="pinTitle">Acceso modo Coach</h3>
+    <p class="modal-sub" id="pinSub">Ingresa el PIN del coach para activar el modo de edición.</p>
+    <input type="password" class="pin-input" id="pinInput" inputmode="numeric" maxlength="10" placeholder="••••" autocomplete="off">
+    <div class="pin-error" id="pinError"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="pinCancel">Cancelar</button>
+      <button class="btn" id="pinSubmit">Entrar →</button>
+    </div>
   </div>
 </div>
 
@@ -725,6 +772,40 @@ header.topbar{
     <button class="btn" id="testBackendBtn">🔍 Probar conexión</button>
   </div>
 
+  <div class="card" id="coachPinCard">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">🔒</div>
+        <div>
+          <h2>Seguridad del modo Coach</h2>
+          <div class="card-subtitle">PIN que protege la edición de metas y frase</div>
+        </div>
+      </div>
+    </div>
+    <p class="text-dim" style="line-height:1.6;font-size:14px;margin-bottom:16px">
+      Define un PIN numérico (4-10 dígitos). Solo quien lo conozca podrá activar el modo Coach
+      en cualquier navegador. Si el campo queda vacío, el modo Coach no pedirá PIN
+      <strong style="color:var(--warn)">(no recomendado)</strong>.
+    </p>
+    <div class="row cols-2">
+      <div class="field">
+        <label>PIN del coach</label>
+        <input type="text" inputmode="numeric" maxlength="10" data-config="coachPin" placeholder="Ej. 4729">
+      </div>
+      <div class="field" style="display:flex;align-items:flex-end">
+        <button class="btn" id="savePinBtn">💾 Guardar PIN</button>
+      </div>
+    </div>
+    <div id="coachSessionInfo" class="status-bar hidden mt-4" style="border-left-color:var(--accent)">
+      <div class="status-icon">🔓</div>
+      <div class="status-text" style="flex:1">
+        <strong>Sesión Coach activa en este navegador</strong>
+        <span>Para forzar el PIN otra vez en futuras sesiones, presiona "Cerrar sesión coach".</span>
+      </div>
+      <button class="btn sm ghost" id="logoutCoachBtn">Cerrar sesión coach</button>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-header">
       <div class="card-title">
@@ -785,17 +866,25 @@ header.topbar{
 
 const LS_BACKEND = 'hewser_hoja_backend_url';
 const LS_ROLE = 'hewser_hoja_role';
+const LS_COACH_AUTH = 'hewser_hoja_coach_auth';  // marca de que ya pasó PIN en este nav
 
 let state = {
   backendUrl: localStorage.getItem(LS_BACKEND) || '',
   role: localStorage.getItem(LS_ROLE) || 'empresario',
+  coachAuthed: localStorage.getItem(LS_COACH_AUTH) === 'yes',
   currentWeek: getCurrentWeekId(),
   data: null,
-  config: { emailEmpresario:'', emailCoach:'', nombreCoach:'', frase:'Lo que no se mide, no se mejora.' },
+  config: { emailEmpresario:'', emailCoach:'', nombreCoach:'', frase:'Lo que no se mide, no se mejora.', coachPin:'' },
   hojasIndex: [],
   charts: {},
   connected: false
 };
+
+// Si el usuario tenía rol coach guardado pero no está autenticado, lo bajamos a empresario
+if (state.role === 'coach' && !state.coachAuthed) {
+  state.role = 'empresario';
+  localStorage.setItem(LS_ROLE, 'empresario');
+}
 
 const DEFAULT_METAS = () => [
   {texto:'', cumplida:null, observaciones:''},
@@ -1129,11 +1218,67 @@ function bindSplash(){
 function bindUI(){
   document.querySelectorAll('#roleSwitch button').forEach(b=>{
     b.addEventListener('click', ()=>{
-      state.role = b.dataset.role;
-      localStorage.setItem(LS_ROLE, state.role);
-      applyRole();
-      renderMetas();
+      const target = b.dataset.role;
+      if (target === state.role) return;
+
+      if (target === 'coach') {
+        // Si no hay PIN configurado, deja entrar libre
+        const pin = (state.config.coachPin || '').trim();
+        if (!pin) {
+          activateCoachMode();
+          return;
+        }
+        // Si ya está autenticado en este navegador, pasar directo
+        if (state.coachAuthed) {
+          activateCoachMode();
+          return;
+        }
+        // Pedir PIN
+        openPinModal();
+      } else {
+        // Cambio a empresario — siempre libre
+        state.role = 'empresario';
+        localStorage.setItem(LS_ROLE, 'empresario');
+        applyRole();
+        renderMetas();
+      }
     });
+  });
+
+  // Modal de PIN
+  document.getElementById('pinSubmit').addEventListener('click', verifyPin);
+  document.getElementById('pinCancel').addEventListener('click', closePinModal);
+  document.getElementById('pinInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') verifyPin();
+    if (e.key === 'Escape') closePinModal();
+  });
+
+  // Logout coach
+  document.getElementById('logoutCoachBtn').addEventListener('click', ()=>{
+    localStorage.removeItem(LS_COACH_AUTH);
+    state.coachAuthed = false;
+    state.role = 'empresario';
+    localStorage.setItem(LS_ROLE, 'empresario');
+    applyRole();
+    renderMetas();
+    renderCoachSessionInfo();
+    toast('success', 'Sesión cerrada', 'Modo Coach desactivado en este navegador.');
+  });
+
+  // Guardar PIN (botón dedicado)
+  document.getElementById('savePinBtn').addEventListener('click', async ()=>{
+    const pinInput = document.querySelector('[data-config="coachPin"]');
+    const pin = pinInput.value.trim();
+    if (pin && !/^\d{4,10}$/.test(pin)) {
+      return toast('error', 'PIN inválido', 'Usa solo dígitos (4-10).');
+    }
+    state.config.coachPin = pin;
+    try {
+      await apiPost({ action:'config', config: { coachPin: pin } });
+      toast('success', pin ? 'PIN guardado' : 'PIN eliminado', pin ? 'El modo Coach ahora pedirá este PIN.' : 'El modo Coach ya no pedirá PIN.');
+    } catch(e) {
+      toast('error', 'Error al guardar', e.message);
+    }
   });
 
   document.querySelectorAll('.tab').forEach(t=>{
@@ -1211,6 +1356,53 @@ function switchTab(name){
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('hidden', c.dataset.content!==name));
   if(name === 'stats') renderStats();
   if(name === 'history') renderHistory();
+  if(name === 'settings') renderCoachSessionInfo();
+}
+
+/* ================================================================ */
+/*  PIN MODAL                                                         */
+/* ================================================================ */
+
+function openPinModal(){
+  document.getElementById('pinModal').classList.remove('hidden');
+  document.getElementById('pinError').textContent = '';
+  const inp = document.getElementById('pinInput');
+  inp.value = '';
+  setTimeout(()=>inp.focus(), 50);
+}
+
+function closePinModal(){
+  document.getElementById('pinModal').classList.add('hidden');
+}
+
+function verifyPin(){
+  const pin = (state.config.coachPin || '').trim();
+  const entered = document.getElementById('pinInput').value.trim();
+  if (entered === pin) {
+    closePinModal();
+    activateCoachMode();
+  } else {
+    document.getElementById('pinError').textContent = 'PIN incorrecto. Intenta de nuevo.';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+  }
+}
+
+function activateCoachMode(){
+  state.role = 'coach';
+  state.coachAuthed = true;
+  localStorage.setItem(LS_ROLE, 'coach');
+  localStorage.setItem(LS_COACH_AUTH, 'yes');
+  applyRole();
+  renderMetas();
+  renderCoachSessionInfo();
+  toast('success', 'Modo Coach activado', 'Ahora puedes definir metas y la frase de la semana.');
+}
+
+function renderCoachSessionInfo(){
+  const el = document.getElementById('coachSessionInfo');
+  if (!el) return;
+  el.classList.toggle('hidden', !state.coachAuthed);
 }
 
 /* ================================================================ */
