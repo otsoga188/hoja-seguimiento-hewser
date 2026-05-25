@@ -893,7 +893,7 @@ if (state.role === 'coach' && !state.coachAuthed) {
 
 // Helper para resolver el PIN actual (Sheet > Default)
 function currentPin(){
-  const fromSheet = (state.config.coachPin || '').trim();
+  const fromSheet = String(state.config.coachPin || '').trim();
   return fromSheet || DEFAULT_COACH_PIN;
 }
 
@@ -1397,17 +1397,12 @@ function closePinModal(){
 
 function verifyPin(){
   const pin = currentPin();
-  const inputEl = document.getElementById('pinInput');
-  const entered = inputEl.value.trim();
-  // Diagnóstico completo
-  const msg = `Ingresado: "${entered}" (len ${entered.length}) | Esperado: "${pin}" (len ${pin.length}) | Match: ${entered === pin} | state.config.coachPin: "${state.config.coachPin}"`;
-  console.log('[VERIFY PIN]', msg);
-  toast('info', 'Verificando PIN', msg);
+  const entered = document.getElementById('pinInput').value.trim();
   if (entered === pin) {
     closePinModal();
     activateCoachMode();
   } else {
-    document.getElementById('pinError').textContent = `PIN incorrecto. (Ingresado: "${entered}", Esperado: "${pin}")`;
+    document.getElementById('pinError').textContent = 'PIN incorrecto. Intenta de nuevo.';
     document.getElementById('pinInput').value = '';
     document.getElementById('pinInput').focus();
   }
