@@ -1162,6 +1162,19 @@ function applyRole(){
     ? 'Los cambios se guardan en Sheets para tu empresario.'
     : 'Se guarda en Sheets y se manda correo al coach.';
   document.getElementById('sendBtn').style.display = isCoach ? 'none' : '';
+
+  // Esconder pestaña Configuración para empresario
+  const settingsTab = document.querySelector('.tab[data-tab="settings"]');
+  if (settingsTab) {
+    settingsTab.classList.toggle('hidden', !isCoach);
+  }
+  // Si el empresario estaba parado en Configuración, redirigir a Hoja
+  if (!isCoach) {
+    const activeTab = document.querySelector('.tab.active');
+    if (activeTab && activeTab.dataset.tab === 'settings') {
+      switchTab('form');
+    }
+  }
 }
 
 /* ================================================================ */
@@ -1217,26 +1230,27 @@ function bindSplash(){
 
 function bindUI(){
   document.querySelectorAll('#roleSwitch button').forEach(b=>{
-    b.addEventListener('click', ()=>{
+    b.addEventListener('click', (ev)=>{
+      ev.preventDefault();
       const target = b.dataset.role;
-      if (target === state.role) return;
 
       if (target === 'coach') {
-        // Si no hay PIN configurado, deja entrar libre
         const pin = (state.config.coachPin || '').trim();
+
         if (!pin) {
           activateCoachMode();
           return;
         }
-        // Si ya está autenticado en este navegador, pasar directo
+        if (state.role === 'coach' && state.coachAuthed) {
+          return;
+        }
         if (state.coachAuthed) {
           activateCoachMode();
           return;
         }
-        // Pedir PIN
         openPinModal();
-      } else {
-        // Cambio a empresario — siempre libre
+      } else if (target === 'empresario') {
+        if (state.role === 'empresario') return;
         state.role = 'empresario';
         localStorage.setItem(LS_ROLE, 'empresario');
         applyRole();
