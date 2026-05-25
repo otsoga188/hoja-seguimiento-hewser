@@ -320,6 +320,7 @@ header.topbar{
 .toast.success{border-left-color:var(--success)}
 .toast.error{border-left-color:var(--danger)}
 .toast.warn{border-left-color:var(--warn)}
+.toast.info{border-left-color:var(--info)}
 .toast strong{display:block;font-size:14px;margin-bottom:2px}
 .toast span{font-size:13px;color:var(--text-dim)}
 @keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
@@ -783,9 +784,9 @@ header.topbar{
       </div>
     </div>
     <p class="text-dim" style="line-height:1.6;font-size:14px;margin-bottom:16px">
-      Define un PIN numérico (4-10 dígitos). Solo quien lo conozca podrá activar el modo Coach
-      en cualquier navegador. Si el campo queda vacío, el modo Coach no pedirá PIN
-      <strong style="color:var(--warn)">(no recomendado)</strong>.
+      Ya hay un PIN activo por defecto. Si quieres cambiarlo a uno propio, escríbelo aquí (4-10 dígitos)
+      y guarda. Si lo dejas en blanco, sigue activo el PIN por defecto del sistema —
+      <strong style="color:var(--accent)">el modo Coach siempre requiere PIN</strong>.
     </p>
     <div class="row cols-2">
       <div class="field">
@@ -868,13 +869,17 @@ const LS_BACKEND = 'hewser_hoja_backend_url';
 const LS_ROLE = 'hewser_hoja_role';
 const LS_COACH_AUTH = 'hewser_hoja_coach_auth';  // marca de que ya pasó PIN en este nav
 
+// PIN hardcoded por defecto. Si la Sheet tiene uno distinto, gana el de la Sheet.
+// Pero siempre habrá un PIN activo (nunca se permite acceso libre).
+const DEFAULT_COACH_PIN = '2743';
+
 let state = {
   backendUrl: localStorage.getItem(LS_BACKEND) || '',
   role: localStorage.getItem(LS_ROLE) || 'empresario',
   coachAuthed: localStorage.getItem(LS_COACH_AUTH) === 'yes',
   currentWeek: getCurrentWeekId(),
   data: null,
-  config: { emailEmpresario:'', emailCoach:'', nombreCoach:'', frase:'Lo que no se mide, no se mejora.', coachPin:'' },
+  config: { emailEmpresario:'', emailCoach:'', nombreCoach:'', frase:'Lo que no se mide, no se mejora.', coachPin: DEFAULT_COACH_PIN },
   hojasIndex: [],
   charts: {},
   connected: false
@@ -884,6 +889,12 @@ let state = {
 if (state.role === 'coach' && !state.coachAuthed) {
   state.role = 'empresario';
   localStorage.setItem(LS_ROLE, 'empresario');
+}
+
+// Helper para resolver el PIN actual (Sheet > Default)
+function currentPin(){
+  const fromSheet = (state.config.coachPin || '').trim();
+  return fromSheet || DEFAULT_COACH_PIN;
 }
 
 const DEFAULT_METAS = () => [
@@ -1235,12 +1246,7 @@ function bindUI(){
       const target = b.dataset.role;
 
       if (target === 'coach') {
-        const pin = (state.config.coachPin || '').trim();
-
-        if (!pin) {
-          activateCoachMode();
-          return;
-        }
+        // Siempre hay PIN (Sheet o default). Nunca acceso libre.
         if (state.role === 'coach' && state.coachAuthed) {
           return;
         }
@@ -1390,7 +1396,7 @@ function closePinModal(){
 }
 
 function verifyPin(){
-  const pin = (state.config.coachPin || '').trim();
+  const pin = currentPin();
   const entered = document.getElementById('pinInput').value.trim();
   if (entered === pin) {
     closePinModal();
