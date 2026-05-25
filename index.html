@@ -413,7 +413,7 @@ header.topbar{
     <div class="lock-icon">🔒</div>
     <h3 id="pinTitle">Acceso modo Coach</h3>
     <p class="modal-sub" id="pinSub">Ingresa el PIN del coach para activar el modo de edición.</p>
-    <input type="password" class="pin-input" id="pinInput" inputmode="numeric" maxlength="10" placeholder="••••" autocomplete="off">
+    <input type="text" class="pin-input" id="pinInput" inputmode="numeric" maxlength="10" placeholder="••••" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="-webkit-text-security:disc;text-security:disc" name="hoja-pin-no-save" data-1p-ignore data-lpignore="true" data-form-type="other">
     <div class="pin-error" id="pinError"></div>
     <div class="modal-actions">
       <button class="btn ghost" id="pinCancel">Cancelar</button>
@@ -1398,6 +1398,8 @@ function closePinModal(){
 function verifyPin(){
   const pin = currentPin();
   const entered = document.getElementById('pinInput').value.trim();
+  // Diagnóstico temporal
+  toast('info', 'Verificando', `Ingresado: "${entered}" | Esperado: "${pin}" | Igual: ${entered === pin}`);
   if (entered === pin) {
     closePinModal();
     activateCoachMode();
