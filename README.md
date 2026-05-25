@@ -175,3 +175,4 @@ Duplica la Google Sheet, crea otro proyecto Apps Script con el nuevo `SHEET_ID`,
 - Notificaciones push del navegador además del correo.
 
 Avísame por cuál seguimos.
+
