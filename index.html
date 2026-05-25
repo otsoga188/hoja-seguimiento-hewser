@@ -310,7 +310,7 @@ header.topbar{
 .mt-2{margin-top:8px}.mt-4{margin-top:16px}.mt-6{margin-top:24px}.mt-8{margin-top:32px}
 .text-dim{color:var(--text-dim)}
 
-.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:10px;max-width:380px}
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;max-width:380px}
 .toast{
   background:var(--surface);border:1px solid var(--border);
   border-left:3px solid var(--accent);border-radius:12px;
@@ -1397,14 +1397,17 @@ function closePinModal(){
 
 function verifyPin(){
   const pin = currentPin();
-  const entered = document.getElementById('pinInput').value.trim();
-  // Diagnóstico temporal
-  toast('info', 'Verificando', `Ingresado: "${entered}" | Esperado: "${pin}" | Igual: ${entered === pin}`);
+  const inputEl = document.getElementById('pinInput');
+  const entered = inputEl.value.trim();
+  // Diagnóstico completo
+  const msg = `Ingresado: "${entered}" (len ${entered.length}) | Esperado: "${pin}" (len ${pin.length}) | Match: ${entered === pin} | state.config.coachPin: "${state.config.coachPin}"`;
+  console.log('[VERIFY PIN]', msg);
+  toast('info', 'Verificando PIN', msg);
   if (entered === pin) {
     closePinModal();
     activateCoachMode();
   } else {
-    document.getElementById('pinError').textContent = 'PIN incorrecto. Intenta de nuevo.';
+    document.getElementById('pinError').textContent = `PIN incorrecto. (Ingresado: "${entered}", Esperado: "${pin}")`;
     document.getElementById('pinInput').value = '';
     document.getElementById('pinInput').focus();
   }
