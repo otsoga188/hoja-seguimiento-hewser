@@ -276,6 +276,32 @@ header.topbar{
   display:flex;align-items:center;justify-content:space-between;gap:16px;
   cursor:pointer;transition:all .15s;
 }
+
+/* Insight cards */
+.insight{
+  background:var(--bg-2);border:1px solid var(--border-soft);
+  border-radius:12px;padding:14px 18px;
+  display:flex;align-items:flex-start;gap:14px;
+  border-left:3px solid var(--accent);
+}
+.insight.up{border-left-color:var(--success)}
+.insight.down{border-left-color:var(--danger)}
+.insight.flat{border-left-color:var(--info)}
+.insight.alert{border-left-color:var(--warn)}
+.insight-icon{font-size:22px;line-height:1;flex-shrink:0}
+.insight-content{flex:1}
+.insight-title{font-weight:700;font-size:14px;margin-bottom:4px}
+.insight-desc{font-size:13px;color:var(--text-dim);line-height:1.5}
+
+.kpi-trend.up{color:var(--success)}
+.kpi-trend.down{color:var(--danger)}
+.kpi-trend .delta{
+  font-family:'JetBrains Mono',monospace;font-weight:700;
+  padding:2px 6px;border-radius:4px;font-size:11px;
+  margin-right:4px;
+}
+.kpi-trend.up .delta{background:rgba(122,255,157,0.15);color:var(--success)}
+.kpi-trend.down .delta{background:rgba(255,94,108,0.15);color:var(--danger)}
 .history-item:hover{border-color:var(--accent);transform:translateX(4px)}
 .history-meta{display:flex;align-items:center;gap:14px;min-width:0;flex:1}
 .history-date{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-dim);min-width:90px}
@@ -347,7 +373,45 @@ header.topbar{
 .splash-card h2{font-size:28px;margin-bottom:12px}
 .splash-card p{color:var(--text-dim);line-height:1.6;margin-bottom:20px}
 
-/* PIN modal */
+/* ─── PRINT MODE (exportar PDF) ─── */
+@media print {
+  body { background: white !important; color: #111 !important; }
+  body * { color: #111 !important; }
+  .topbar, .tabs, .submit-bar, .role-switch, .conn-status, .save-indicator,
+  .modal-overlay, .splash, .toast-wrap, #reloadBtn, #sendBtn, #exportPdfBtn,
+  .meta-actions, .empty, [data-content="settings"], [data-content="history"] {
+    display: none !important;
+  }
+  .hero h1 { font-size: 28px !important; }
+  .hero-eyebrow { color: #6b7280 !important; }
+  .hero-eyebrow::before { background: #6b7280 !important; }
+  .card { background: white !important; border: 1px solid #d1d5db !important; box-shadow: none !important; page-break-inside: avoid; }
+  .card-title-num { background: #f3f4f6 !important; color: #6b7280 !important; }
+  .field input, .field textarea, .field select { background: white !important; border-color: #d1d5db !important; }
+  .meta-item { background: #fafafa !important; border: 1px solid #e5e7eb !important; page-break-inside: avoid; }
+  .meta-num { background: white !important; color: #6b7280 !important; }
+  .meta-item.done { border-color: #10b981 !important; background: #ecfdf5 !important; }
+  .meta-item.undone { border-color: #ef4444 !important; background: #fef2f2 !important; }
+  .chip { background: #f3f4f6 !important; border-color: #d1d5db !important; }
+  .chip.active { background: #d4ff3a !important; color: #111 !important; }
+  .chip:not(.active) { display: none !important; }
+  .coach-phrase { background: #fafafa !important; border-color: #d1d5db !important; }
+  .coach-phrase::before { color: #6b7280 !important; }
+  .status-bar { display: none !important; }
+  .check:not(.selected) { display: none !important; }
+  .check.selected { background: #d4ff3a !important; color: #111 !important; }
+  .pdf-only { display: block !important; }
+  .pdf-multi { page-break-after: always; }
+}
+.pdf-only { display: none; }
+
+/* PDF mode mientras se prepara para exportar (en pantalla previa) */
+body.pdf-export-preview {
+  background: white !important;
+}
+body.pdf-export-preview .app {
+  background: white;
+}
 .modal-overlay{
   position:fixed;inset:0;background:rgba(13,14,18,0.85);backdrop-filter:blur(8px);
   z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;
@@ -380,14 +444,26 @@ header.topbar{
 }
 
 .save-indicator{
-  position:fixed;bottom:24px;left:24px;z-index:150;
-  background:var(--surface);border:1px solid var(--border);
-  padding:8px 14px;border-radius:10px;font-size:12px;
-  color:var(--text-dim);display:flex;align-items:center;gap:8px;
-  opacity:0;transition:opacity .2s;
-  font-family:'JetBrains Mono',monospace;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:10px;
+  background:var(--surface-2);border:1px solid var(--border-soft);
+  font-size:12px;font-weight:600;
+  font-family:'JetBrains Mono',monospace;letter-spacing:0.02em;
+  transition:all .25s;
+  color:var(--text-dim);
 }
-.save-indicator.visible{opacity:1}
+.save-indicator .dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--text-faint);transition:all .25s;
+}
+.save-indicator.dirty{color:var(--warn);border-color:rgba(255,179,71,0.3);background:rgba(255,179,71,0.05)}
+.save-indicator.dirty .dot{background:var(--warn);animation:pulse 1s infinite}
+.save-indicator.saving{color:var(--info);border-color:rgba(110,193,255,0.3);background:rgba(110,193,255,0.05)}
+.save-indicator.saving .dot{background:var(--info);animation:pulse 0.8s infinite}
+.save-indicator.saved{color:var(--success);border-color:rgba(122,255,157,0.3);background:rgba(122,255,157,0.05)}
+.save-indicator.saved .dot{background:var(--success)}
+.save-indicator.error{color:var(--danger);border-color:rgba(255,94,108,0.3);background:rgba(255,94,108,0.05)}
+.save-indicator.error .dot{background:var(--danger)}
 </style>
 </head>
 <body>
@@ -433,6 +509,10 @@ header.topbar{
     </div>
   </div>
   <div class="topbar-right">
+    <div class="save-indicator saved" id="saveIndicator">
+      <span class="dot"></span>
+      <span id="saveText">Todo guardado</span>
+    </div>
     <div class="conn-status" id="connStatus">
       <span class="conn-dot loading" id="connDot"></span>
       <span id="connText">Conectando…</span>
@@ -678,11 +758,42 @@ header.topbar{
       <span id="submitSub">Se guarda en Sheets y se manda correo al coach.</span>
     </div>
     <div class="submit-actions">
-      <button class="btn ghost" id="reloadBtn">↻ Recargar desde Sheets</button>
+      <button class="btn ghost" id="exportPdfBtn">📄 PDF</button>
+      <button class="btn ghost" id="reloadBtn">↻ Recargar</button>
       <button class="btn" id="sendBtn">📤 Enviar al coach</button>
     </div>
   </div>
 
+</div>
+
+<!-- Modal Reporte Multi-Semana -->
+<div class="modal-overlay hidden" id="reportModal">
+  <div class="modal-card" style="max-width:520px">
+    <h3>📊 Reporte multi-semana</h3>
+    <p class="modal-sub">Selecciona el rango de semanas para exportar a PDF.</p>
+    <div class="row cols-2">
+      <div class="field">
+        <label>Desde</label>
+        <input type="date" id="reportFrom">
+      </div>
+      <div class="field">
+        <label>Hasta</label>
+        <input type="date" id="reportTo">
+      </div>
+    </div>
+    <div class="field">
+      <label>O usa un rango rápido</label>
+      <div class="chip-group">
+        <label class="chip" data-range="month"><input type="radio" name="rangeQuick">Último mes</label>
+        <label class="chip" data-range="quarter"><input type="radio" name="rangeQuick">Último trimestre</label>
+        <label class="chip" data-range="all"><input type="radio" name="rangeQuick">Todo el historial</label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="reportCancel">Cancelar</button>
+      <button class="btn" id="reportGenerate">Generar PDF →</button>
+    </div>
+  </div>
 </div>
 
 <!-- TAB STATS -->
@@ -691,27 +802,40 @@ header.topbar{
     <div class="kpi">
       <div class="kpi-label">Cumplimiento promedio</div>
       <div class="kpi-value accent mono" id="kpiCumplimiento">—<span class="kpi-unit">%</span></div>
-      <div class="kpi-trend">Últimas 8 semanas</div>
+      <div class="kpi-trend" id="kpiCumplimientoTrend">Últimas 8 semanas</div>
     </div>
     <div class="kpi">
       <div class="kpi-label">Hojas entregadas</div>
       <div class="kpi-value mono" id="kpiHojas">0</div>
-      <div class="kpi-trend">En total</div>
+      <div class="kpi-trend" id="kpiHojasTrend">En total</div>
     </div>
     <div class="kpi">
       <div class="kpi-label">Racha actual</div>
       <div class="kpi-value mono" id="kpiRacha">0<span class="kpi-unit">sem</span></div>
-      <div class="kpi-trend">A tiempo consecutivas</div>
+      <div class="kpi-trend" id="kpiRachaTrend">A tiempo consecutivas</div>
     </div>
     <div class="kpi">
       <div class="kpi-label">Motivación promedio</div>
       <div class="kpi-value mono" id="kpiMotivacion">—<span class="kpi-unit">%</span></div>
-      <div class="kpi-trend">Últimas 8 semanas</div>
+      <div class="kpi-trend" id="kpiMotivacionTrend">Últimas 8 semanas</div>
     </div>
   </div>
 
+  <div class="card" id="insightsCard">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">🔍</div>
+        <div>
+          <h2>Detectado en tus datos</h2>
+          <div class="card-subtitle">Patrones automáticos de tus últimas semanas</div>
+        </div>
+      </div>
+    </div>
+    <div id="insightsList" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+
   <div class="chart-wrap">
-    <h3>📈 Cumplimiento de metas por semana</h3>
+    <h3>📈 Cumplimiento de metas por semana <span style="font-size:12px;color:var(--text-faint);font-weight:400;margin-left:8px">(con línea de tendencia)</span></h3>
     <div class="chart-canvas"><canvas id="chartCumplimiento"></canvas></div>
   </div>
 
@@ -730,6 +854,21 @@ header.topbar{
     <h3>🎯 Enfoque recurrente</h3>
     <div class="chart-canvas"><canvas id="chartEnfoque"></canvas></div>
   </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title-num">📊</div>
+        <div>
+          <h2>Comparativa mes a mes</h2>
+          <div class="card-subtitle">Promedios mensuales</div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-wrap" style="margin:0;padding:0;background:transparent;border:none">
+      <div class="chart-canvas"><canvas id="chartMensual"></canvas></div>
+    </div>
+  </div>
 </div>
 
 <!-- TAB HISTORY -->
@@ -743,7 +882,10 @@ header.topbar{
           <div class="card-subtitle">Haz clic en cualquiera para revisarla</div>
         </div>
       </div>
-      <button class="btn sm ghost" id="refreshHistoryBtn">↻ Recargar</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn sm ghost" id="reportMultiBtn">📊 Reporte PDF</button>
+        <button class="btn sm ghost" id="refreshHistoryBtn">↻ Recargar</button>
+      </div>
     </div>
     <div id="historyList" class="history-list"></div>
     <div id="historyEmpty" class="empty hidden">
@@ -857,7 +999,6 @@ header.topbar{
 
 </div>
 
-<div class="save-indicator" id="saveIndicator">💾 Guardado</div>
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
@@ -1193,34 +1334,61 @@ function applyRole(){
 /* ================================================================ */
 
 let saveTimer = null;
+let lastSavedAt = null;
+let savedAtInterval = null;
+
 function scheduleSave(){
   clearTimeout(saveTimer);
-  showSaving('Guardando…');
+  setSaveState('dirty', 'Cambios sin guardar…');
   saveTimer = setTimeout(async()=>{
     if(!state.connected){
-      showSaving('Sin conexión — se reintentará al reconectar', true);
+      setSaveState('error', 'Sin conexión — reintentará');
       return;
     }
     try{
+      setSaveState('saving', 'Guardando…');
       await apiPost({
         action:'save',
         weekId: state.currentWeek,
         data: state.data
       });
-      showSaving('💾 Guardado en Sheets');
+      lastSavedAt = Date.now();
+      setSaveState('saved', 'Todo guardado');
+      startSavedTimer();
     } catch(e){
-      showSaving('⚠️ Error: ' + e.message, true);
+      setSaveState('error', '⚠️ Error al guardar');
     }
   }, 800);
 }
 
-function showSaving(text, isError=false){
+function setSaveState(state, text){
   const el = document.getElementById('saveIndicator');
-  el.textContent = text;
-  el.style.borderLeftColor = isError ? 'var(--danger)' : 'var(--accent)';
-  el.classList.add('visible');
-  clearTimeout(el._timer);
-  el._timer = setTimeout(()=> el.classList.remove('visible'), 2200);
+  if (!el) return;
+  el.classList.remove('dirty','saving','saved','error');
+  el.classList.add(state);
+  document.getElementById('saveText').textContent = text;
+  if (state !== 'saved') stopSavedTimer();
+}
+
+function startSavedTimer(){
+  stopSavedTimer();
+  savedAtInterval = setInterval(()=>{
+    if (!lastSavedAt) return;
+    const secs = Math.floor((Date.now() - lastSavedAt) / 1000);
+    let label;
+    if (secs < 5) label = 'Todo guardado · ahora';
+    else if (secs < 60) label = `Todo guardado · hace ${secs}s`;
+    else if (secs < 3600) label = `Todo guardado · hace ${Math.floor(secs/60)} min`;
+    else label = `Todo guardado · hace ${Math.floor(secs/3600)} h`;
+    document.getElementById('saveText').textContent = label;
+  }, 1000);
+}
+
+function stopSavedTimer(){
+  if (savedAtInterval) {
+    clearInterval(savedAtInterval);
+    savedAtInterval = null;
+  }
 }
 
 /* ================================================================ */
@@ -1363,6 +1531,32 @@ function bindUI(){
     renderHistory();
   });
 
+  // PDF: hoja individual
+  document.getElementById('exportPdfBtn').addEventListener('click', exportCurrentSheetPDF);
+
+  // PDF: reporte multi-semana
+  document.getElementById('reportMultiBtn').addEventListener('click', openReportModal);
+  document.getElementById('reportCancel').addEventListener('click', ()=>{
+    document.getElementById('reportModal').classList.add('hidden');
+  });
+  document.getElementById('reportGenerate').addEventListener('click', generateMultiReport);
+
+  // Chips de rango rápido en reporte
+  document.querySelectorAll('[data-range]').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('[data-range]').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      const today = new Date();
+      const range = chip.dataset.range;
+      let from, to = today;
+      if (range === 'month') from = new Date(today.getFullYear(), today.getMonth()-1, today.getDate());
+      else if (range === 'quarter') from = new Date(today.getFullYear(), today.getMonth()-3, today.getDate());
+      else if (range === 'all') from = new Date(2020, 0, 1);
+      document.getElementById('reportFrom').value = from.toISOString().slice(0,10);
+      document.getElementById('reportTo').value = to.toISOString().slice(0,10);
+    });
+  });
+
   document.getElementById('testBackendBtn').addEventListener('click', testBackend);
   document.getElementById('saveConfigBtn').addEventListener('click', saveConfigToBackend);
   document.getElementById('backendUrl').addEventListener('change', e=>{
@@ -1470,7 +1664,7 @@ async function sendToCoach(){
     return toast('warn','Falta configurar coach','Agrega el email del coach en Configuración.');
   }
   try{
-    showSaving('Enviando…');
+    setSaveState('saving','Enviando…');
     const r = await apiPost({
       action:'send',
       weekId: state.currentWeek,
@@ -1480,9 +1674,12 @@ async function sendToCoach(){
     state.data.enviadaFecha = Date.now();
     renderForm();
     evaluateReminder();
-    showSaving('✅ Enviada');
+    lastSavedAt = Date.now();
+    setSaveState('saved', 'Hoja enviada');
+    startSavedTimer();
     toast('success','Hoja enviada','Tu coach recibió la notificación por correo.');
   } catch(e){
+    setSaveState('error','Error al enviar');
     toast('error','Error al enviar', e.message);
   }
 }
@@ -1494,40 +1691,201 @@ async function sendToCoach(){
 function renderStats(){
   const data = [...state.hojasIndex].sort((a,b)=> a.weekId.localeCompare(b.weekId));
   const recent = data.slice(-8);
+  const previous = data.slice(-16, -8); // 8 anteriores para comparativa
 
   if(data.length === 0){
     document.getElementById('kpiCumplimiento').innerHTML = '0<span class="kpi-unit">%</span>';
     document.getElementById('kpiHojas').textContent = '0';
     document.getElementById('kpiRacha').innerHTML = '0<span class="kpi-unit">sem</span>';
     document.getElementById('kpiMotivacion').innerHTML = '—<span class="kpi-unit">%</span>';
-  } else {
-    const avgCump = Math.round(recent.reduce((a,b)=>a+b.cumplimiento,0)/recent.length);
-    const enviadas = data.filter(x=>x.enviada).length;
-    const avgMot = Math.round(recent.reduce((a,b)=>a+b.motivacion,0)/recent.length);
-    let racha = 0;
-    for(let i = data.length-1; i>=0; i--){ if(data[i].enviada) racha++; else break; }
-    document.getElementById('kpiCumplimiento').innerHTML = `${avgCump}<span class="kpi-unit">%</span>`;
-    document.getElementById('kpiHojas').textContent = enviadas;
-    document.getElementById('kpiRacha').innerHTML = `${racha}<span class="kpi-unit">sem</span>`;
-    document.getElementById('kpiMotivacion').innerHTML = `${avgMot}<span class="kpi-unit">%</span>`;
+    renderInsights([], []);
+    drawCharts([], []);
+    drawMonthlyChart([]);
+    return;
   }
-  drawCharts(recent);
+
+  const avgCump = Math.round(recent.reduce((a,b)=>a+b.cumplimiento,0)/recent.length);
+  const enviadas = data.filter(x=>x.enviada).length;
+  const avgMot = Math.round(recent.reduce((a,b)=>a+b.motivacion,0)/recent.length);
+  let racha = 0;
+  for(let i = data.length-1; i>=0; i--){ if(data[i].enviada) racha++; else break; }
+
+  document.getElementById('kpiCumplimiento').innerHTML = `${avgCump}<span class="kpi-unit">%</span>`;
+  document.getElementById('kpiHojas').textContent = enviadas;
+  document.getElementById('kpiRacha').innerHTML = `${racha}<span class="kpi-unit">sem</span>`;
+  document.getElementById('kpiMotivacion').innerHTML = `${avgMot}<span class="kpi-unit">%</span>`;
+
+  // Trends (delta vs período anterior)
+  if (previous.length > 0) {
+    const prevCump = Math.round(previous.reduce((a,b)=>a+b.cumplimiento,0)/previous.length);
+    const prevMot = Math.round(previous.reduce((a,b)=>a+b.motivacion,0)/previous.length);
+    setTrend('kpiCumplimientoTrend', avgCump - prevCump, '%', 'vs período anterior');
+    setTrend('kpiMotivacionTrend', avgMot - prevMot, '%', 'vs período anterior');
+  } else {
+    document.getElementById('kpiCumplimientoTrend').textContent = 'Últimas 8 semanas';
+    document.getElementById('kpiMotivacionTrend').textContent = 'Últimas 8 semanas';
+  }
+  document.getElementById('kpiHojasTrend').textContent = `${data.length - enviadas} pendientes`;
+  document.getElementById('kpiRachaTrend').textContent = racha >= 3 ? '🔥 ¡buena racha!' : 'A tiempo consecutivas';
+
+  renderInsights(recent, data);
+  drawCharts(recent, data);
+  drawMonthlyChart(data);
 }
 
-function drawCharts(weeks){
+function setTrend(id, delta, suffix, label){
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('up','down');
+  if (delta > 0) {
+    el.classList.add('up');
+    el.innerHTML = `<span class="delta">+${delta}${suffix}</span>${label}`;
+  } else if (delta < 0) {
+    el.classList.add('down');
+    el.innerHTML = `<span class="delta">${delta}${suffix}</span>${label}`;
+  } else {
+    el.innerHTML = `<span class="delta">±0${suffix}</span>${label}`;
+  }
+}
+
+function renderInsights(recent, all){
+  const list = document.getElementById('insightsList');
+  list.innerHTML = '';
+  const insights = computeInsights(recent, all);
+  if (insights.length === 0) {
+    list.innerHTML = `<div class="insight flat">
+      <div class="insight-icon">📊</div>
+      <div class="insight-content">
+        <div class="insight-title">Aún no hay suficientes datos</div>
+        <div class="insight-desc">Necesitamos al menos 3 semanas para detectar patrones. Sigue llenando tus hojas y aquí aparecerán insights automáticos.</div>
+      </div></div>`;
+    return;
+  }
+  insights.forEach(ins => {
+    const div = document.createElement('div');
+    div.className = `insight ${ins.type}`;
+    div.innerHTML = `
+      <div class="insight-icon">${ins.icon}</div>
+      <div class="insight-content">
+        <div class="insight-title">${ins.title}</div>
+        <div class="insight-desc">${ins.desc}</div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function computeInsights(recent, all){
+  const insights = [];
+  if (recent.length < 3) return insights;
+
+  // Tendencia de cumplimiento
+  const cumps = recent.map(w=>w.cumplimiento);
+  const trend = linearTrend(cumps);
+  if (trend.slope > 3) {
+    insights.push({type:'up', icon:'📈', title:'Tu cumplimiento va al alza',
+      desc:`En las últimas ${recent.length} semanas tu % de cumplimiento subió en promedio ${trend.slope.toFixed(1)} puntos por semana. Sigue así.`});
+  } else if (trend.slope < -3) {
+    insights.push({type:'down', icon:'📉', title:'Tu cumplimiento está bajando',
+      desc:`En las últimas ${recent.length} semanas tu % de cumplimiento cayó en promedio ${Math.abs(trend.slope).toFixed(1)} puntos por semana. Vale la pena revisar qué cambió.`});
+  }
+
+  // Cumplimiento bajo sostenido
+  const lowWeeks = recent.filter(w=>w.cumplimiento < 50).length;
+  if (lowWeeks >= 3 && lowWeeks >= recent.length/2) {
+    insights.push({type:'alert', icon:'⚠️', title:'Cumplimiento por debajo del 50%',
+      desc:`En ${lowWeeks} de tus últimas ${recent.length} semanas estuviste por debajo del 50%. Considera revisar si las metas semanales son realistas o si hay algún bloqueo recurrente.`});
+  }
+
+  // Motivación
+  const mots = recent.map(w=>w.motivacion);
+  const motAvg = mots.reduce((a,b)=>a+b,0)/mots.length;
+  if (motAvg < 50) {
+    insights.push({type:'alert', icon:'🔋', title:'Motivación baja sostenida',
+      desc:`Tu motivación promedio reciente es ${motAvg.toFixed(0)}%. Cuando esto pasa por varias semanas seguidas, suele ser señal de fatiga o desalineación. Vale platicarlo en sesión.`});
+  } else if (motAvg > 75) {
+    insights.push({type:'up', icon:'⚡', title:'Motivación alta',
+      desc:`Tu motivación promedio es ${motAvg.toFixed(0)}%. Aprovecha esta energía para empujar las metas más retadoras.`});
+  }
+
+  // Horas vs cumplimiento (correlación simple)
+  if (recent.length >= 4) {
+    const hrs = recent.map(w=>w.horas);
+    const hrsAvg = hrs.reduce((a,b)=>a+b,0)/hrs.length;
+    const cumpAvg = cumps.reduce((a,b)=>a+b,0)/cumps.length;
+    if (hrsAvg < 5 && cumpAvg < 60) {
+      insights.push({type:'flat', icon:'⏰', title:'Pocas horas EN el negocio',
+        desc:`Estás dedicando un promedio de ${hrsAvg.toFixed(1)} horas semanales trabajando EN tu negocio (no IN). Históricamente, sin tiempo dedicado a estrategia, las metas se quedan en buenas intenciones.`});
+    }
+  }
+
+  // Áreas de enfoque recurrente
+  const areas = {};
+  recent.forEach(w => {
+    (w.concentracion||[]).concat(w.trabajado||[]).forEach(a => {
+      areas[a] = (areas[a]||0)+1;
+    });
+  });
+  const topArea = Object.entries(areas).sort((a,b)=>b[1]-a[1])[0];
+  if (topArea && topArea[1] >= recent.length - 1) {
+    insights.push({type:'flat', icon:'🎯', title:`Foco constante: ${topArea[0]}`,
+      desc:`Has trabajado en "${topArea[0]}" en ${topArea[1]} de las últimas ${recent.length} semanas. Es un foco sostenido — si los resultados aún no llegan, vale revisar el enfoque.`});
+  }
+
+  // Hojas no enviadas
+  const noEnviadas = recent.filter(w=>!w.enviada).length;
+  if (noEnviadas >= 2) {
+    insights.push({type:'alert', icon:'📭', title:'Hojas sin enviar',
+      desc:`${noEnviadas} de tus últimas ${recent.length} hojas no fueron enviadas al coach a tiempo. La consistencia en el envío suele correlacionar con consistencia en el progreso.`});
+  }
+
+  return insights;
+}
+
+function linearTrend(values){
+  const n = values.length;
+  const xs = values.map((_,i)=>i);
+  const xMean = xs.reduce((a,b)=>a+b,0)/n;
+  const yMean = values.reduce((a,b)=>a+b,0)/n;
+  let num=0, den=0;
+  for (let i=0;i<n;i++){
+    num += (xs[i]-xMean) * (values[i]-yMean);
+    den += (xs[i]-xMean) ** 2;
+  }
+  const slope = den === 0 ? 0 : num/den;
+  const intercept = yMean - slope * xMean;
+  return { slope, intercept, line: xs.map(x => intercept + slope * x) };
+}
+
+function drawCharts(weeks, allWeeks){
   const labels = weeks.map(w=>'S'+w.weekId.split('-W')[1]);
   Chart.defaults.color = '#9aa1b3';
   Chart.defaults.font.family = "'Manrope',sans-serif";
   Chart.defaults.borderColor = '#2e3340';
   Object.values(state.charts).forEach(c=>c?.destroy?.());
 
+  if (weeks.length === 0) return;
+
+  // Cumplimiento con línea de tendencia
+  const cumpValues = weeks.map(w=>w.cumplimiento);
+  const trendLine = weeks.length >= 3 ? linearTrend(cumpValues).line : null;
+  const cumpDatasets = [{
+    type:'bar', label:'% Cumplimiento', data: cumpValues,
+    backgroundColor:'rgba(212,255,58,0.6)', borderColor:'#d4ff3a',
+    borderWidth:1, borderRadius:6, order:2
+  }];
+  if (trendLine) {
+    cumpDatasets.push({
+      type:'line', label:'Tendencia', data: trendLine,
+      borderColor:'rgba(110,193,255,0.7)', borderWidth:2, borderDash:[6,4],
+      pointRadius:0, fill:false, order:1, tension:0
+    });
+  }
   state.charts.cump = new Chart(document.getElementById('chartCumplimiento'),{
-    type:'bar',
-    data:{labels,datasets:[{label:'% Cumplimiento',data:weeks.map(w=>w.cumplimiento),
-      backgroundColor:'rgba(212,255,58,0.6)',borderColor:'#d4ff3a',borderWidth:1,borderRadius:6}]},
-    options:{maintainAspectRatio:false,plugins:{legend:{display:false}},
+    data:{ labels, datasets: cumpDatasets },
+    options:{maintainAspectRatio:false, plugins:{legend:{display:trendLine?true:false}},
       scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}}}
   });
+
   state.charts.mot = new Chart(document.getElementById('chartMotivacion'),{
     type:'line',
     data:{labels,datasets:[{label:'Motivación',data:weeks.map(w=>w.motivacion),
@@ -1554,6 +1912,59 @@ function drawCharts(weeks){
     options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}},
       scales:{x:{beginAtZero:true,ticks:{stepSize:1}}}}
   });
+}
+
+function drawMonthlyChart(allWeeks){
+  const canvas = document.getElementById('chartMensual');
+  if (!canvas) return;
+
+  // Agrupar por mes (basado en weekId)
+  const byMonth = {};
+  allWeeks.forEach(w => {
+    if (!w.fecha) return;
+    const d = new Date(w.fecha);
+    if (isNaN(d.getTime())) return;
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if (!byMonth[key]) byMonth[key] = { cump:[], mot:[], hrs:[] };
+    byMonth[key].cump.push(w.cumplimiento);
+    byMonth[key].mot.push(w.motivacion);
+    byMonth[key].hrs.push(w.horas);
+  });
+
+  const months = Object.keys(byMonth).sort();
+  if (months.length === 0) return;
+
+  const labels = months.map(m => {
+    const [y,mo] = m.split('-');
+    return new Date(+y,+mo-1).toLocaleDateString('es-MX',{month:'short',year:'2-digit'});
+  });
+  const cumpAvgs = months.map(m => avg(byMonth[m].cump));
+  const motAvgs = months.map(m => avg(byMonth[m].mot));
+
+  if (state.charts.mensual) state.charts.mensual.destroy();
+  state.charts.mensual = new Chart(canvas, {
+    data: {
+      labels,
+      datasets: [
+        { type:'bar', label:'Cumplimiento %', data: cumpAvgs,
+          backgroundColor:'rgba(212,255,58,0.6)', borderColor:'#d4ff3a',
+          borderWidth:1, borderRadius:6, yAxisID:'y' },
+        { type:'line', label:'Motivación %', data: motAvgs,
+          borderColor:'#7aff9d', backgroundColor:'rgba(122,255,157,0.1)',
+          fill:false, tension:0.3, pointRadius:5, yAxisID:'y' }
+      ]
+    },
+    options: {
+      maintainAspectRatio:false,
+      plugins:{legend:{display:true}},
+      scales:{ y:{beginAtZero:true, max:100, ticks:{callback:v=>v+'%'}} }
+    }
+  });
+}
+
+function avg(arr){
+  if (!arr || arr.length === 0) return 0;
+  return Math.round(arr.reduce((a,b)=>a+b,0)/arr.length);
 }
 
 /* ================================================================ */
@@ -1629,6 +2040,271 @@ async function testBackend(){
     toast('error','Sin conexión', e.message);
     setConn('err','Sin conexión');
   }
+}
+
+/* ================================================================ */
+/*  EXPORT PDF                                                        */
+/* ================================================================ */
+
+function exportCurrentSheetPDF(){
+  // Cambia el título de la página temporalmente para que el PDF tenga buen nombre
+  const originalTitle = document.title;
+  const d = state.data;
+  const wk = state.currentWeek;
+  document.title = `Hoja Semanal - ${d.nombre || 'Sin nombre'} - ${wk}`;
+
+  // Asegúrate de estar en la pestaña Hoja actual
+  switchTab('form');
+
+  // Pequeña pausa para que la UI se actualice antes de imprimir
+  setTimeout(()=>{
+    window.print();
+    document.title = originalTitle;
+  }, 200);
+}
+
+function openReportModal(){
+  document.getElementById('reportModal').classList.remove('hidden');
+  // Default: último mes
+  const today = new Date();
+  const monthAgo = new Date(today.getFullYear(), today.getMonth()-1, today.getDate());
+  document.getElementById('reportFrom').value = monthAgo.toISOString().slice(0,10);
+  document.getElementById('reportTo').value = today.toISOString().slice(0,10);
+}
+
+async function generateMultiReport(){
+  const fromDate = document.getElementById('reportFrom').value;
+  const toDate = document.getElementById('reportTo').value;
+  if (!fromDate || !toDate) {
+    return toast('error','Faltan fechas','Selecciona un rango.');
+  }
+
+  // Filtrar hojas en el rango
+  const from = new Date(fromDate);
+  const to = new Date(toDate);
+  to.setHours(23,59,59);
+
+  const inRange = state.hojasIndex.filter(h => {
+    if (!h.fecha) return false;
+    const d = new Date(h.fecha);
+    return d >= from && d <= to;
+  }).sort((a,b)=>a.weekId.localeCompare(b.weekId));
+
+  if (inRange.length === 0) {
+    return toast('warn','Sin hojas','No hay hojas en ese rango.');
+  }
+
+  // Cargar el detalle completo de cada hoja
+  toast('info','Generando reporte', `Cargando ${inRange.length} hojas…`);
+  document.getElementById('reportModal').classList.add('hidden');
+
+  const fullHojas = [];
+  for (const h of inRange) {
+    try {
+      const r = await apiGet('get', { weekId: h.weekId, nombre: h.nombre });
+      if (r.hoja) fullHojas.push(r.hoja);
+    } catch(e) { console.warn('error cargando', h.weekId, e); }
+  }
+
+  if (fullHojas.length === 0) {
+    return toast('error','Error','No se pudieron cargar las hojas.');
+  }
+
+  // Construir el HTML del reporte en una ventana nueva
+  openPrintWindow(buildMultiReportHtml(fullHojas, fromDate, toDate));
+}
+
+function buildMultiReportHtml(hojas, fromDate, toDate){
+  const nombre = hojas[0]?.nombre || '';
+  const empresa = hojas[0]?.empresa || '';
+
+  // Resumen agregado
+  const totalHojas = hojas.length;
+  const enviadas = hojas.filter(h=>h.enviada).length;
+  const cumpProm = Math.round(hojas.reduce((a,h)=>a+computeCumplimientoLocal(h),0)/totalHojas);
+  const motProm = Math.round(hojas.reduce((a,h)=>a+(Number(h.motivacion)||0),0)/totalHojas);
+  const horasTot = hojas.reduce((a,h)=>a+(Number(h.horas)||0),0);
+
+  // Recopilar áreas de enfoque
+  const areas = {};
+  hojas.forEach(h=>{
+    (h.concentracion||[]).concat(h.trabajado||[]).forEach(a=>{
+      areas[a] = (areas[a]||0)+1;
+    });
+  });
+  const topAreas = Object.entries(areas).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  // Body del reporte
+  const hojasHtml = hojas.map(h => buildSingleHojaHtml(h)).join('<div style="page-break-after:always"></div>');
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Reporte ${nombre} - ${fromDate} a ${toDate}</title>
+<style>
+@page { margin: 1.5cm; size: A4; }
+body { font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; color: #111; line-height: 1.5; margin: 0; padding: 0; }
+h1 { font-family: Georgia, serif; font-size: 28px; margin: 0 0 4px; }
+h2 { font-size: 18px; margin: 24px 0 12px; border-bottom: 2px solid #d4ff3a; padding-bottom: 6px; }
+h3 { font-size: 14px; margin: 14px 0 6px; color: #444; }
+.cover { padding: 0; }
+.cover .eyebrow { font-size: 11px; letter-spacing: 0.15em; color: #6b7280; text-transform: uppercase; margin-bottom: 8px; }
+.cover .meta { color: #6b7280; margin-bottom: 32px; }
+.kpis { display: table; width: 100%; border-collapse: separate; border-spacing: 8px; margin: 24px 0; }
+.kpi-row { display: table-row; }
+.kpi { display: table-cell; background: #f3f4f6; padding: 16px; border-radius: 8px; text-align: center; width: 20%; }
+.kpi-label { font-size: 10px; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase; }
+.kpi-value { font-size: 28px; font-weight: 800; margin-top: 6px; }
+.kpi-value.accent { color: #65a300; }
+.area-list { list-style: none; padding: 0; }
+.area-list li { padding: 6px 0; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; }
+.area-list li:last-child { border-bottom: none; }
+.area-count { background: #d4ff3a; color: #111; padding: 2px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+.hoja-page { padding-top: 12px; }
+.hoja-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+.section { background: #fafafa; border-left: 3px solid #d4ff3a; padding: 12px 14px; margin: 12px 0; border-radius: 4px; }
+.section-label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; font-weight: 700; margin-bottom: 4px; }
+.metas-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.metas-table td { padding: 8px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+.metas-table tr:last-child td { border-bottom: none; }
+.metas-num { width: 28px; font-weight: 700; color: #6b7280; }
+.metas-text { font-weight: 600; }
+.metas-obs { font-size: 12px; color: #6b7280; margin-top: 4px; }
+.metas-status { width: 70px; text-align: center; }
+.pill { display: inline-block; padding: 3px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+.pill.yes { background: #10b981; color: #fff; }
+.pill.no { background: #ef4444; color: #fff; }
+.pill.neutral { background: #9ca3af; color: #fff; }
+.chips { margin: 6px 0; }
+.chip { display: inline-block; background: #d4ff3a; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; margin: 2px 3px 2px 0; }
+.chip.gray { background: #e5e7eb; }
+.quote { font-family: Georgia, serif; font-style: italic; background: #fafafa; padding: 14px 18px; border-radius: 6px; border-left: 3px solid #d4ff3a; margin: 12px 0; }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+</style>
+</head>
+<body onload="window.print()">
+
+<!-- PORTADA -->
+<div class="cover">
+  <div class="eyebrow">REPORTE DE COACHING</div>
+  <h1>${escHtml(nombre)} · ${escHtml(empresa)}</h1>
+  <div class="meta">Período: ${formatDateEs(fromDate)} – ${formatDateEs(toDate)} · ${totalHojas} hojas</div>
+
+  <h2>Resumen del período</h2>
+  <div class="kpis"><div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Hojas</div>
+      <div class="kpi-value">${enviadas}/${totalHojas}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Cumplimiento</div>
+      <div class="kpi-value accent">${cumpProm}%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Motivación</div>
+      <div class="kpi-value">${motProm}%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Horas totales</div>
+      <div class="kpi-value">${horasTot.toFixed(0)}</div>
+    </div>
+  </div></div>
+
+  <h2>Áreas de mayor enfoque</h2>
+  <ul class="area-list">
+    ${topAreas.map(([area,n]) => `<li><span>${escHtml(area)}</span><span class="area-count">${n} sem</span></li>`).join('')}
+  </ul>
+</div>
+
+<div style="page-break-after:always"></div>
+
+<!-- HOJAS INDIVIDUALES -->
+${hojasHtml}
+
+</body></html>`;
+}
+
+function buildSingleHojaHtml(h){
+  const cump = computeCumplimientoLocal(h);
+  const metasValidas = (h.metas||[]).filter(m=>m.texto && m.texto.trim());
+  return `<div class="hoja-page">
+  <div class="hoja-header">
+    <div>
+      <div style="font-size:11px;letter-spacing:0.15em;color:#6b7280;text-transform:uppercase">SEMANA ${h.weekId.split('-W')[1]}</div>
+      <h1 style="font-size:22px">${weekRange(h.weekId)}</h1>
+    </div>
+    <div style="text-align:right">
+      <span class="pill ${h.enviada?'yes':'neutral'}">${h.enviada?'✓ Enviada':'Pendiente'}</span>
+      <div style="margin-top:6px"><strong style="font-size:24px;color:#65a300">${cump}%</strong> <span style="color:#6b7280;font-size:12px">cumplido</span></div>
+    </div>
+  </div>
+
+  <div class="kpis" style="margin:12px 0"><div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Motivación</div><div class="kpi-value" style="font-size:22px">${h.motivacion||0}%</div></div>
+    <div class="kpi"><div class="kpi-label">Horas</div><div class="kpi-value" style="font-size:22px">${h.horas||0}</div></div>
+    <div class="kpi"><div class="kpi-label">El negocio va</div><div class="kpi-value" style="font-size:14px;font-weight:600;line-height:1.3">${escHtml(h.negocioVa||'—')}</div></div>
+  </div></div>
+
+  <h3>Metas de la semana</h3>
+  <table class="metas-table">
+    ${metasValidas.length === 0 ? '<tr><td style="color:#6b7280">Sin metas</td></tr>' :
+      metasValidas.map((m,i)=>`<tr>
+        <td class="metas-num">${i+1}</td>
+        <td>
+          <div class="metas-text">${escHtml(m.texto)}</div>
+          ${m.observaciones ? `<div class="metas-obs">${escHtml(m.observaciones)}</div>` : ''}
+        </td>
+        <td class="metas-status">
+          ${m.cumplida===true ? '<span class="pill yes">Sí</span>' : m.cumplida===false ? '<span class="pill no">No</span>' : '<span class="pill neutral">-</span>'}
+        </td>
+      </tr>`).join('')
+    }
+  </table>
+
+  <div class="row-2">
+    <div>
+      ${h.logro ? `<div class="section"><div class="section-label">🏆 Principal logro</div>${escHtml(h.logro)}</div>` : ''}
+      ${h.reto ? `<div class="section"><div class="section-label">🚧 Mayor reto</div>${escHtml(h.reto)}</div>` : ''}
+      ${h.aprendizajeSemana ? `<div class="section"><div class="section-label">📚 Aprendizajes</div>${escHtml(h.aprendizajeSemana)}</div>` : ''}
+    </div>
+    <div>
+      ${h.metaProxima ? `<div class="section"><div class="section-label">🎯 Próxima meta</div>${escHtml(h.metaProxima)}</div>` : ''}
+      ${h.ayudaCoach ? `<div class="section"><div class="section-label">🙋 Ayuda del coach</div>${escHtml(h.ayudaCoach)}</div>` : ''}
+      ${h.comentarios ? `<div class="section"><div class="section-label">💬 Comentarios</div>${escHtml(h.comentarios)}</div>` : ''}
+    </div>
+  </div>
+
+  ${(h.concentracion && h.concentracion.length) ? `<h3>Me concentré en</h3><div class="chips">${h.concentracion.map(c=>`<span class="chip">${escHtml(c)}</span>`).join('')}</div>` : ''}
+  ${(h.trabajado && h.trabajado.length) ? `<h3>También trabajé en</h3><div class="chips">${h.trabajado.map(c=>`<span class="chip gray">${escHtml(c)}</span>`).join('')}</div>` : ''}
+
+  ${h.frase ? `<div class="quote">${escHtml(h.frase)}<div style="margin-top:8px;font-size:11px;color:#6b7280;letter-spacing:0.08em;font-style:normal">— Frase del coach</div></div>` : ''}
+</div>`;
+}
+
+function openPrintWindow(html){
+  const win = window.open('', '_blank');
+  if (!win) {
+    toast('error','Bloqueado','El navegador bloqueó la ventana. Permite popups.');
+    return;
+  }
+  win.document.write(html);
+  win.document.close();
+}
+
+function computeCumplimientoLocal(h){
+  if (!h || !h.metas) return 0;
+  const validas = h.metas.filter(m=>m.texto && m.texto.trim());
+  if (validas.length === 0) return 0;
+  return Math.round((validas.filter(m=>m.cumplida===true).length / validas.length) * 100);
+}
+
+function escHtml(s){
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+
+function formatDateEs(d){
+  return new Date(d).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'});
 }
 
 /* ================================================================ */
